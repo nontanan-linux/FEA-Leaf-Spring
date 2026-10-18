@@ -5,6 +5,7 @@
 **Project Folder:** `D:\M.eng\FiniteElementMethode\FEA_Leaf_Spring`  
 **Model Resource:** `D:\M.eng\FiniteElementMethode\FEA_Leaf_Spring\resource`  
 **Scripts Directory:** `D:\M.eng\FiniteElementMethode\FEA_Leaf_Spring\scripts`  
+**Results Directory:** `D:\M.eng\FiniteElementMethode\FEA_Leaf_Spring\results`  
 
 ---
 
@@ -59,7 +60,7 @@ To design a durable, high-performance suspension component, the Finite Element M
 ### 2.1 Assumptions for the Conditions
 The analysis considers a standard light commercial vehicle (1-tonne laden pickup truck) under critical operating maneuvers.
 
-![Figure 1: Vehicle Free Body Diagram & Suspension Load Distribution](scripts/vehicle_dynamics_fbd.png)
+![Figure 1: Vehicle Free Body Diagram & Suspension Load Distribution](vehicle_dynamics_fbd.png)
 *Figure 1: Vehicle Free Body Diagram and suspension load distribution for a 1-tonne laden commercial pickup truck ($GVW = 2,800\text{ kg}$). Shows static normal load allocation ($40\%$ front, $60\%$ rear) at the center of gravity ($h_{\text{cg}} = 0.750\text{ m}, a = 1.851\text{ m}, b = 1.234\text{ m}$) and the corresponding vertical design forces transmitted to each rear leaf spring ($F_{v,\text{static}} = 8,240.4\text{ N}$, $F_{v,\text{bump}} = 16,480.8\text{ N}$).*
 
 **Vehicle Baseline Specifications:**
@@ -109,7 +110,7 @@ The model evaluated in this project is based on the production master leaf sprin
 * **Eye Inner Diameter:** $30.0\text{ mm}$ (Bushing pin interface)
 * **Axle Clamping Seat Area ($A_{\text{seat}}$):** $60.0\text{ mm} \times 100.0\text{ mm}$ (U-bolt mounting zone)
 
-![Figure 2: 3D CAD Solid Geometry Model of the Automotive Leaf Spring Assembly](resource/leaf_spring_cad_model.jpg)
+![Figure 2: 3D CAD Solid Geometry Model of the Automotive Leaf Spring Assembly](../resource/leaf_spring_cad_model.jpg)
 *Figure 2: 3D CAD solid geometry model of the automotive multi-leaf spring assembly from `resource/Leaf Spring.stp`. The assembly comprises the master leaf with curled eyes, graduated leaves, rebound alignment clips, and the central axle seating zone ($60\text{ mm} \times 100\text{ mm}$).*
 
 ---
@@ -168,7 +169,7 @@ u_z(x, y, z) = 0
 
 Because 3D continuum solid elements (`C3D8` and `C3D10`) possess three translational degrees of freedom per node, fixing translations across the annular cylindrical surface locks all rigid-body translational modes and rotational pitch/yaw/roll modes, providing an unyielding fixed support.
 
-![Figure 3: 3D Fixed Support Restraint Applied on Inner Cylindrical Surface of Front Eye](scripts/fixed_support_model.png)
+![Figure 3: 3D Fixed Support Restraint Applied on Inner Cylindrical Surface of Front Eye](fixed_support_model.png)
 *Figure 3: Fixed Support boundary condition applied on the inner cylindrical surface of the leaf spring front eye (evaluated directly on `resource/Leaf Spring.stl`). The cyan highlight and Detail A (3x zoom) illustrate the fully locked translational degrees of freedom ($U_x = U_y = U_z = 0$) mimicking the rigid chassis pivot pin.*
 
 > [!NOTE]
@@ -181,7 +182,7 @@ $$u_y(x, y, z) = 0, \quad u_z(x, y, z) = 0, \quad u_x \text{ is free to translat
 #### 3.5.3 Axle Clamping Seat Loading
 The central region ($60\text{ mm} \times 100\text{ mm}$) where the leaf spring is clamped to the rear axle via two high-tensile U-bolts receives the vertical reaction forces ($F_v = -8,240.40\text{ N}$ static / $-16,480.80\text{ N}$ dynamic bump) and longitudinal braking traction forces ($F_x$).
 
-![Figure 4: Finite Element Restraints and Boundary Loading Schematic](scripts/mesh_boundary_conditions.png)
+![Figure 4: Finite Element Restraints and Boundary Loading Schematic](mesh_boundary_conditions.png)
 *Figure 4: Complete finite element restraints and multi-directional loading schematic. Shows the front fixed eye ($U_x = U_y = U_z = 0$), rear shackle sliding roller ($U_y = U_z = 0, U_x = \text{Free}$), and the axle seat subjected to vertical force $F_v$ and longitudinal braking force $F_x$.*
 
 ### 3.6 Mesh Information
@@ -191,7 +192,7 @@ The central region ($60\text{ mm} \times 100\text{ mm}$) where the leaf spring i
 * **Number of Nodes:** $13,448$ surface nodes (up to $22,500$ 3D continuum nodes)
 * **Element Quality:** Average Jacobian ratio $> 0.88$, warpage $< 12^\circ$
 
-![Figure 5: 3D Finite Element Mesh Model and Rolled Eye Quadratic Discretization](scripts/mesh_model_3d.png)
+![Figure 5: 3D Finite Element Mesh Model and Rolled Eye Quadratic Discretization](mesh_model_3d.png)
 *Figure 5: 3D finite element mesh model rendered directly from CAD geometry matching the suspension isometric perspective. Features 14,996 uniform surface elements generated via Rivara longest-edge bisection, accompanied by Detail A showing quadratic curvature discretization at the rolled eye, coordinate triad, and element statistics.*
 
 ---
@@ -238,7 +239,7 @@ Mesh convergence was evaluated across 5 mesh refinement stages under static load
 
 *Result:* The strain energy converges asymptotically to $690.52\text{ N}\cdot\text{m}$ with less than $0.001\%$ error between 80 and 160 elements.
 
-![Figure 6: Finite Element Mesh Convergence Study (Strain Energy vs. Discretization Density)](scripts/mesh_convergence_study.png)
+![Figure 6: Finite Element Mesh Convergence Study (Strain Energy vs. Discretization Density)](mesh_convergence_study.png)
 *Figure 6: Finite element mesh convergence study showing strain energy ($U$) and peak Von Mises stress ($\sigma_{\text{vm}}$) across 5 refinement stages (10 to 160 elements). The solution converges asymptotically to $690.52\text{ N}\cdot\text{m}$ at 80 elements with less than $0.001\%$ numerical error, verifying discretization independence.*
 
 ---
@@ -272,7 +273,7 @@ The leaf was redesigned with a parabolic taper profile:
 - Center thickness ($x = 0$): $t_{\text{center}} = 14.5\text{ mm}$
 - Eye-end thickness ($x = \pm L$): $t_{\text{eye}} = 7.5\text{ mm}$
 
-![Figure 7: Von Mises Stress Distribution Comparison: Baseline Uniform vs. Parabolic Tapered Model](scripts/model_revision_comparison.png)
+![Figure 7: Von Mises Stress Distribution Comparison: Baseline Uniform vs. Parabolic Tapered Model](model_revision_comparison.png)
 *Figure 7: Longitudinal Von Mises stress distribution comparison along the leaf spring half-span ($x = 0$ to $600\text{ mm}$) under 2.0G dynamic bump impact. The revised parabolic tapered profile ($t_{\text{center}} = 14.5\text{ mm} \rightarrow t_{\text{eye}} = 7.5\text{ mm}$) reduces peak stress by $31.5\%$ from $3,433.56\text{ MPa}$ to $2,352.28\text{ MPa}$ and decreases maximum deflection by $31.4\%$ at equivalent component mass ($6.98\text{ kg}$).*
 
 #### Performance Comparison: Baseline vs. Revised Model

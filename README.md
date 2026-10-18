@@ -11,30 +11,32 @@
 ```
 D:\M.eng\FiniteElementMethode\FEA_Leaf_Spring\
 ├── README.md                   # This project guide and execution instructions
-├── result.md                   # Full 5-section academic project report (Matches Dr. Monsak's format)
 ├── resource\                   # 3D CAD & Geometry files
 │   ├── Leaf Spring.stp         # 3D STEP solid model for CAD/PrePoMax import
 │   ├── Leaf Spring.igs         # IGES format
 │   ├── Leaf Spring.stl         # 3D STL mesh model
-│   └── Leaf Spring.jpg         # Model visual preview
+│   ├── Leaf Spring.jpg         # Model visual preview
+│   └── leaf_spring_cad_model.jpg # Rendered CAD solid geometry image
+├── results\                    # All FEA results and the academic project report
+│   ├── result.md               # Full 5-section academic project report (Matches Dr. Monsak's format)
+│   ├── vehicle_dynamics_fbd.png# Figure 1: Vehicle Free Body Diagram & Load Distribution
+│   ├── fixed_support_model.png # Figure 3: Pure CAD 3D Fixed Support figure
+│   ├── fixed_support_cad_view.png # Standalone pure CAD Fixed Support view
+│   ├── fixed_support_cad_closeup.png # 3x close-up detail of scoped inner cylindrical bore
+│   ├── mesh_boundary_conditions.png # Figure 4: Restraints & loading schematic
+│   ├── mesh_model_3d.png       # Figure 5: 3D Finite Element Solid Mesh publication figure
+│   ├── mesh_model_cad_view.png # Standalone 3D CAD mesh view in exact sample perspective
+│   ├── mesh_model_cad_closeup.png # 3x zoom close-up detail of front eye mesh density
+│   ├── mesh_convergence_study.png # Figure 6: Generated convergence curve chart
+│   └── model_revision_comparison.png # Figure 7: Baseline vs. revised comparison chart
 └── scripts\                    # Python source code for analysis & FEA
     ├── leaf_spring_analytical.py   # Vehicle dynamics load & analytical beam mechanics calculation
     ├── leaf_spring_fem.py          # Complete Python Finite Element solver & convergence plotter
-    ├── plot_mesh_model.py          # 3D STL mesh and boundary condition generator
-    ├── plot_fixed_support.py       # Dedicated 3D Fixed Support visualizer
     ├── plot_vehicle_dynamics.py    # Vehicle dynamics Free Body Diagram generator (Figure 1)
-    ├── vehicle_dynamics_fbd.png    # Vehicle Free Body Diagram & Load Distribution (Figure 1)
     ├── plot_cad_fixed_support.py   # Direct CAD 3D renderer (Open3D) & Fixed Support hole highlighter
-    ├── fixed_support_model.png     # Pure CAD 3D Fixed Support figure (Figure 3)
-    ├── fixed_support_cad_view.png  # High-resolution pure CAD model rendering
-    ├── fixed_support_cad_closeup.png# 3x close-up detail of scoped inner cylindrical bore
     ├── plot_cad_mesh.py            # Direct CAD 3D FEA mesh renderer with Rivara bisection refinement
-    ├── mesh_model_3d.png           # 3D Finite Element Solid Mesh publication figure (Figure 5)
-    ├── mesh_model_cad_view.png     # Standalone 3D CAD mesh view in exact sample perspective
-    ├── mesh_model_cad_closeup.png  # 3x zoom close-up detail of front eye mesh density
-    ├── mesh_boundary_conditions.png# Overall restraints and loading diagram (Figure 4)
-    ├── mesh_convergence_study.png  # Generated convergence curve chart (Figure 6)
-    └── model_revision_comparison.png # Generated baseline vs. revised comparison chart (Figure 7)
+    ├── plot_mesh_model.py          # 3D STL mesh and boundary condition generator
+    └── plot_fixed_support.py       # Dedicated 3D Fixed Support visualizer
 ```
 
 ---
@@ -52,9 +54,20 @@ Solves the curved leaf spring frame/beam FEM, evaluates the 4 operational load c
 ```powershell
 python scripts\leaf_spring_fem.py
 ```
-*Outputs generated:*
-- `scripts/mesh_convergence_study.png` (Strain energy convergence graph)
-- `scripts/model_revision_comparison.png` (Stress distribution comparison between Baseline and Parabolic Tapered design)
+*Outputs generated into `results/`:*
+- `results/mesh_convergence_study.png` (Strain energy convergence graph - Figure 6)
+- `results/model_revision_comparison.png` (Stress distribution comparison between Baseline and Parabolic Tapered design - Figure 7)
+
+### 3. Generate Vehicle Dynamics Diagram & CAD Visualizations
+```powershell
+python scripts\plot_vehicle_dynamics.py
+python scripts\plot_cad_fixed_support.py
+python scripts\plot_cad_mesh.py
+```
+*Outputs generated into `results/`:*
+- `results/vehicle_dynamics_fbd.png` (Figure 1)
+- `results/fixed_support_model.png` (Figure 3)
+- `results/mesh_model_3d.png` (Figure 5)
 
 ---
 
@@ -82,4 +95,4 @@ The complete academic report strictly follows the 5 requested sections:
 4. **Analysis** (Static vertical, 2.0G bump, Braking, Cornering, Strain energy convergence)
 5. **Result and Discussion** (Study results summary table, Discussion, Model Revision comparison)
 
-👉 Please read the complete report in: **[`result.md`](result.md)**.
+👉 Please read the complete report in: **[`results/result.md`](results/result.md)**.

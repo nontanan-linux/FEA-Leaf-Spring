@@ -299,10 +299,12 @@ def generate_mesh_figure():
                   (triad_x - int(t_len * 0.7) + 4, triad_y + int(t_len * 0.7) + 4)], fill=(20, 70, 230, 255))
     draw.text((triad_x - int(t_len * 0.7) - 60, triad_y + int(t_len * 0.7) + 5), 'Z (Width)', fill=(0, 40, 210, 255), font=font_bold)
 
-    # Save to scripts directory
-    out_mesh = os.path.join(scripts_dir, 'mesh_model_3d.png')
-    out_mesh_cad = os.path.join(scripts_dir, 'mesh_model_cad_view.png')
-    out_mesh_close = os.path.join(scripts_dir, 'mesh_model_cad_closeup.png')
+    # Save to results directory
+    results_dir = os.path.join(project_dir, 'results')
+    os.makedirs(results_dir, exist_ok=True)
+    out_mesh = os.path.join(results_dir, 'mesh_model_3d.png')
+    out_mesh_cad = os.path.join(results_dir, 'mesh_model_cad_view.png')
+    out_mesh_close = os.path.join(results_dir, 'mesh_model_cad_closeup.png')
 
     composite.save(out_mesh, dpi=(300, 300))
     pure_cad.save(out_mesh_cad, dpi=(300, 300))

@@ -253,10 +253,12 @@ def render_cad_fixed_support():
                   (triad_x - int(t_len * 0.7) + 4, triad_y + int(t_len * 0.7) + 4)], fill=(20, 70, 230, 255))
     draw.text((triad_x - int(t_len * 0.7) - 65, triad_y + int(t_len * 0.7) + 5), 'Z (Width)', fill=(0, 40, 210, 255), font=font_bold)
 
-    # Save outputs
-    out_model = os.path.join(scripts_dir, 'fixed_support_model.png')
-    out_cad = os.path.join(scripts_dir, 'fixed_support_cad_view.png')
-    crop_detail_path = os.path.join(scripts_dir, 'fixed_support_cad_closeup.png')
+    # Save outputs to results directory
+    results_dir = os.path.join(project_dir, 'results')
+    os.makedirs(results_dir, exist_ok=True)
+    out_model = os.path.join(results_dir, 'fixed_support_model.png')
+    out_cad = os.path.join(results_dir, 'fixed_support_cad_view.png')
+    crop_detail_path = os.path.join(results_dir, 'fixed_support_cad_closeup.png')
 
     composite.save(out_model, dpi=(300, 300))
     composite.save(out_cad, dpi=(300, 300))

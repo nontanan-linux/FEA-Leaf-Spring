@@ -20,7 +20,10 @@ import matplotlib.pyplot as plt
 import os
 
 # Create output folder for figures
-output_dir = os.path.dirname(os.path.abspath(__file__))
+scripts_dir = os.path.dirname(os.path.abspath(__file__))
+project_dir = os.path.dirname(scripts_dir)
+output_dir = os.path.join(project_dir, 'results')
+os.makedirs(output_dir, exist_ok=True)
 
 # Material Properties: 55Cr3 (SUP9 / SAE 5160 Spring Steel)
 E_MODULUS = 206e9        # Pa (206 GPa)

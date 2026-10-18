@@ -13,7 +13,10 @@ import os
 
 def generate_vehicle_fbd():
     scripts_dir = os.path.dirname(os.path.abspath(__file__))
-    out_path = os.path.join(scripts_dir, 'vehicle_dynamics_fbd.png')
+    project_dir = os.path.dirname(scripts_dir)
+    results_dir = os.path.join(project_dir, 'results')
+    os.makedirs(results_dir, exist_ok=True)
+    out_path = os.path.join(results_dir, 'vehicle_dynamics_fbd.png')
 
     fig, ax = plt.subplots(figsize=(13, 7.2), dpi=300)
     ax.set_facecolor('#f8fafc')

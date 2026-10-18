@@ -29,7 +29,7 @@ def load_stl(filename):
 def generate_fixed_support_figure():
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     stl_path = os.path.join(base_dir, "resource", "Leaf Spring.stl")
-    out_path = os.path.join(base_dir, "scripts", "fixed_support_model.png")
+    out_path = os.path.join(base_dir, "results", "fixed_support_legacy.png")
     
     triangles = load_stl(stl_path)
     all_verts = triangles.reshape(-1, 3)

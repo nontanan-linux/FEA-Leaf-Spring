@@ -30,7 +30,8 @@ def load_stl(filename):
 def generate_mesh_plots():
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     stl_path = os.path.join(base_dir, "resource", "Leaf Spring.stl")
-    scripts_dir = os.path.join(base_dir, "scripts")
+    results_dir = os.path.join(base_dir, "results")
+    os.makedirs(results_dir, exist_ok=True)
     
     triangles = load_stl(stl_path)
     all_verts = triangles.reshape(-1, 3)
@@ -64,7 +65,7 @@ def generate_mesh_plots():
     ax.view_init(elev=22, azim=-55)
     ax.grid(True, linestyle=':', alpha=0.5)
     
-    out1 = os.path.join(scripts_dir, "mesh_model_3d.png")
+    out1 = os.path.join(results_dir, "mesh_model_3d_legacy.png")
     plt.tight_layout()
     plt.savefig(out1, dpi=300, bbox_inches='tight')
     plt.close()
@@ -126,7 +127,7 @@ def generate_mesh_plots():
     ax2.grid(True, linestyle='--', alpha=0.5)
     ax2.legend(loc='lower center', ncol=2, frameon=True)
     
-    out2 = os.path.join(scripts_dir, "mesh_boundary_conditions.png")
+    out2 = os.path.join(results_dir, "mesh_boundary_conditions.png")
     plt.tight_layout()
     plt.savefig(out2, dpi=300, bbox_inches='tight')
     plt.close()
