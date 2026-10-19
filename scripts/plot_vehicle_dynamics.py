@@ -26,7 +26,7 @@ def generate_vehicle_fbd():
     x_front = 0.85
     x_rear = 3.935          # Wheelbase L_wb = 3.085 m
     r_wheel = 0.40          # Wheel rolling radius (m)
-    y_belly = 0.44          # Flat vehicle underbody / rocker sill line (m)
+    y_belly = 0.32          # Vehicle body lower edge / rocker sill line (m)
     x_cg = x_front + 1.851  # CG longitudinal position: 2.701 m (a = 1.851 m, b = 1.234 m)
     y_cg = 0.750            # CG height above ground h_cg = 0.750 m
 
@@ -51,18 +51,23 @@ def generate_vehicle_fbd():
 
     # -------------------------------------------------------------------------
     # 2. Vehicle Body Outline (Pickup Truck Silhouette)
+    # Body extends down to y_belly = 0.32 m (กรอบของรถยื่นลงมา)
     # Underbody is completely flat/level (ท้องรถเสมอราบไป)
     # No window rectangle (ไม่มีสี่เหลี่ยมกระจก)
     # Wheel arches provide realistic clearance over tires
     # -------------------------------------------------------------------------
-    r_arch = 0.52
-    theta_front = np.linspace(np.pi - 0.15, 0.15, 25)
-    f_arch_x = (x_front + r_arch * np.cos(theta_front)).tolist()
-    f_arch_y = (r_wheel + r_arch * np.sin(theta_front)).tolist()
+    r_arch = 0.54
+    sin_theta_0 = (y_belly - r_wheel) / r_arch
+    theta_0 = np.arcsin(sin_theta_0)
+    theta_start = np.pi - theta_0
+    theta_end = theta_0
 
-    theta_rear = np.linspace(np.pi - 0.15, 0.15, 25)
-    r_arch_x = (x_rear + r_arch * np.cos(theta_rear)).tolist()
-    r_arch_y = (r_wheel + r_arch * np.sin(theta_rear)).tolist()
+    theta_arch = np.linspace(theta_start, theta_end, 30)
+    f_arch_x = (x_front + r_arch * np.cos(theta_arch)).tolist()
+    f_arch_y = (r_wheel + r_arch * np.sin(theta_arch)).tolist()
+
+    r_arch_x = (x_rear + r_arch * np.cos(theta_arch)).tolist()
+    r_arch_y = (r_wheel + r_arch * np.sin(theta_arch)).tolist()
 
     body_pts = []
     # Front bumper & lower grille
@@ -100,29 +105,29 @@ def generate_vehicle_fbd():
 
     # -------------------------------------------------------------------------
     # 3. Leaf Spring Assembly (Suspension at Rear Axle, Mounted to Chassis Frame)
-    # Longer span, arching upwards to mount directly to the chassis frame (โครงรถ)
+    # Sits at rear axle and arches upwards to mount brackets
     # -------------------------------------------------------------------------
-    ls_span = 0.65
-    y_center = 0.38          # Axle center height
-    ls_camber = 0.065        # Upward curvature to meet vehicle underbody sill
+    ls_span = 0.58
+    y_center = 0.35          # Axle center height
+    ls_camber = 0.055        # Upward curvature towards chassis frame
     ls_x = np.linspace(x_rear - ls_span, x_rear + ls_span, 80)
-    # Master leaf curves upwards from axle to vehicle underbody
+    # Master leaf curves upwards from axle to vehicle mounting points
     ls_y_master = y_center + ls_camber * ((ls_x - x_rear) / ls_span)**2
     ax.plot(ls_x, ls_y_master, color='#dc2626', lw=4.5, zorder=6, label='Leaf Spring Assembly')
 
     # Secondary graduated leaf
-    ls_span_sub = 0.46
+    ls_span_sub = 0.42
     ls_x_sub = np.linspace(x_rear - ls_span_sub, x_rear + ls_span_sub, 50)
-    ls_y_sub = (y_center - 0.018) + (ls_camber * 0.90) * ((ls_x_sub - x_rear) / ls_span)**2
+    ls_y_sub = (y_center - 0.016) + (ls_camber * 0.90) * ((ls_x_sub - x_rear) / ls_span)**2
     ax.plot(ls_x_sub, ls_y_sub, color='#991b1b', lw=3.2, zorder=6)
 
     # Third graduated leaf
-    ls_span_sub3 = 0.28
+    ls_span_sub3 = 0.26
     ls_x_sub3 = np.linspace(x_rear - ls_span_sub3, x_rear + ls_span_sub3, 30)
-    ls_y_sub3 = (y_center - 0.034) + (ls_camber * 0.80) * ((ls_x_sub3 - x_rear) / ls_span)**2
+    ls_y_sub3 = (y_center - 0.030) + (ls_camber * 0.80) * ((ls_x_sub3 - x_rear) / ls_span)**2
     ax.plot(ls_x_sub3, ls_y_sub3, color='#7f1d1d', lw=2.2, zorder=6)
 
-    # Spring Eyes (Front Fixed Eye & Rear Shackle Eye) mounting to vehicle underbody
+    # Spring Eyes (Front Fixed Eye & Rear Shackle Eye)
     y_front_eye = ls_y_master[0]
     y_rear_eye = ls_y_master[-1]
     ax.scatter([x_rear - ls_span], [y_front_eye], color='#991b1b', edgecolor='#0f172a', s=75, lw=1.6, zorder=7)
