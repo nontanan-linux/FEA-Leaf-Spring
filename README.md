@@ -11,6 +11,7 @@
 ```
 D:\M.eng\FiniteElementMethode\FEA_Leaf_Spring\
 ├── README.md                   # This project guide and execution instructions
+├── requirements.txt            # Python package dependencies and versions
 ├── config\                     # Project configuration YAML files
 │   ├── vehicle_information.yaml# Vehicle specifications, masses, and dynamics
 │   ├── solver.yaml             # Solver methods, units, material, BCs, and load cases
@@ -58,6 +59,69 @@ D:\M.eng\FiniteElementMethode\FEA_Leaf_Spring\
 
 ---
 
+## ⚙️ Installation & Project Setup
+
+### 1. Prerequisites
+- **Python**: Version `3.10` or higher (Tested and verified on `Python 3.12.6`).
+- **Operating System**: Windows 10 / 11, Linux (Ubuntu), or macOS.
+- **Git**: For version control and cloning repository.
+- *(Optional)* **PrePoMax (v2.0.0+) / CalculiX**: For graphical FEA inspection and native solver export.
+
+### 2. Project Setup
+Clone or navigate to the project directory:
+```powershell
+# Clone the repository (if applicable)
+git clone <repository_url>
+
+# Navigate into the project root directory
+cd D:\M.eng\FiniteElementMethode\FEA_Leaf_Spring
+```
+
+### 3. Create & Activate Virtual Environment (Recommended)
+Setting up an isolated virtual environment prevents package conflicts:
+
+- **Windows (PowerShell):**
+  ```powershell
+  python -m venv .venv
+  .\.venv\Scripts\Activate.ps1
+  ```
+  > **Note on PowerShell Execution Policy:**  
+  > If script execution is blocked, enable it for the current process:  
+  > `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass`
+
+- **Linux / macOS:**
+  ```bash
+  python3 -m venv .venv
+  source .venv/bin/activate
+  ```
+
+### 4. Install Dependencies
+Install all required numerical, CAD processing, and 3D visualization packages via `requirements.txt`:
+```powershell
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+#### Core Package Reference:
+| Package | Minimum Version | Purpose in Project |
+| :--- | :--- | :--- |
+| **`numpy`** | $\ge 1.24.0$ | Matrix assembly, global stiffness matrix operations, vector mechanics |
+| **`scipy`** | $\ge 1.10.0$ | Sparse linear algebra solver (`spsolve`), numerical integration |
+| **`matplotlib`** | $\ge 3.7.0$ | Publication-grade charts, FBD schematics, convergence plots, report figures |
+| **`open3d`** | $\ge 0.17.0$ | 3D CAD mesh rendering, raycasting, vertex coloring, and 3D contour field generation |
+| **`PyYAML`** | $\ge 6.0$ | Structured configuration parsing (`config/*.yaml`) |
+| **`pillow`** | $\ge 10.0.0$ | High-resolution image post-processing and figure compositing |
+| **`trimesh`** | $\ge 4.0.0$ | 3D surface mesh manipulation and boundary condition geometry queries |
+| **`gmsh`** | $\ge 4.12.0$ | Direct 3D CAD (STEP/IGES) parametric solid/surface meshing and discretization |
+
+### 5. Verify Installation
+Verify that all dependencies and visualization engines are loaded correctly:
+```powershell
+python -c "import numpy, scipy, matplotlib, open3d, yaml, trimesh; print('>>> [SUCCESS] All FEA dependencies installed successfully!')"
+```
+
+---
+
 ## 🚀 How to Run the Python Scripts
 
 ### 1. Analytical Vehicle Dynamics & Mechanics Calculation
@@ -91,17 +155,6 @@ python scripts\plot_fea_solutions_3d.py
   7. *Strain Energy Distribution* ($U_{\text{strain}}$, J)
 - Standalone 3D contour images: `solution_1_total_deformation.png` to `solution_7_strain_energy.png`
 
-### 4. Generate Vehicle Dynamics Diagram & CAD Mesh Visualizations
-```powershell
-python scripts\plot_vehicle_dynamics.py
-python scripts\plot_cad_fixed_support.py
-python scripts\plot_cad_mesh.py
-```
-*Outputs generated into `results/`:*
-- `results/vehicle_dynamics_fbd.png` (Figure 1)
-- `results/fixed_support_model.png` (Figure 3)
-- `results/mesh_model_3d.png` (Figure 5)
-
 ### 4. CAD to Mesh Preprocessing Pipeline (`generate_mesh.py`)
 Converts 3D CAD geometry (`.stp`/`.step`) directly to finite element meshes (`.inp`/`.stl`) or imports and refines existing meshes, saving outputs directly to `resources/` as configured in `config/model.yaml`:
 ```powershell
@@ -121,6 +174,17 @@ mesh_data = load_or_generate_mesh()
 nodes = mesh_data["vertices"]      # (N, 3) coordinate array
 elements = mesh_data["triangles"]  # (M, 3) element connectivity array
 ```
+
+### 5. Generate Vehicle Dynamics Diagram & CAD Mesh Visualizations
+```powershell
+python scripts\plot_vehicle_dynamics.py
+python scripts\plot_cad_fixed_support.py
+python scripts\plot_cad_mesh.py
+```
+*Outputs generated into `results/`:*
+- `results/vehicle_dynamics_fbd.png` (Figure 1)
+- `results/fixed_support_model.png` (Figure 3)
+- `results/mesh_model_3d.png` (Figure 5)
 
 ---
 

@@ -1,0 +1,16 @@
+# Automotive Leaf Spring FEA Project Requirements
+# Python >= 3.10 recommended (Tested on Python 3.12)
+
+# Numerical & Scientific Computing
+numpy>=1.24.0
+scipy>=1.10.0
+
+# 2D/3D Plotting & Visualization
+matplotlib>=3.7.0
+open3d>=0.17.0
+pillow>=10.0.0
+
+# CAD & Mesh Processing
+PyYAML>=6.0
+trimesh>=4.0.0
+gmsh>=4.12.0
