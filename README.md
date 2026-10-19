@@ -16,12 +16,14 @@ D:\M.eng\FiniteElementMethode\FEA_Leaf_Spring\
 │   ├── solver.yaml             # Solver methods, units, material, BCs, and load cases
 │   ├── model.yaml              # CAD geometry, mesh parameters, and model revisions
 │   └── material.yaml           # Comprehensive material properties database (55Cr3, Fasteners, Bushings, GFRP)
-├── resource\                   # 3D CAD & Geometry files
+├── resource\                   # 3D CAD & Geometry files (also aliased as resources\)
 │   ├── Leaf Spring.stp         # 3D STEP solid model for CAD/PrePoMax import
 │   ├── Leaf Spring.igs         # IGES format
 │   ├── Leaf Spring.stl         # 3D STL mesh model
 │   ├── Leaf Spring.jpg         # Model visual preview
-│   └── leaf_spring_cad_model.jpg # Rendered CAD solid geometry image
+│   ├── leaf_spring_cad_model.jpg # Rendered CAD solid geometry image
+│   ├── leaf_spring_mesh.inp    # 🎯 Preprocessed CalculiX/Abaqus FEA mesh (Generated into resources/)
+│   └── leaf_spring_mesh.stl    # 🎯 Refined surface mesh (Generated into resources/)
 ├── results\                    # All FEA results and the academic project report
 │   ├── result.md               # Full 5-section academic project report (Matches Dr. Monsak's format)
 │   ├── vehicle_dynamics_fbd.png# Figure 1: Vehicle Free Body Diagram & Load Distribution
@@ -76,20 +78,20 @@ python scripts\plot_cad_mesh.py
 - `results/mesh_model_3d.png` (Figure 5)
 
 ### 4. CAD to Mesh Preprocessing Pipeline (`generate_mesh.py`)
-Converts 3D CAD geometry (`.stp`/`.step`) directly to finite element meshes (`.inp`/`.stl`) or imports and refines existing meshes:
+Converts 3D CAD geometry (`.stp`/`.step`) directly to finite element meshes (`.inp`/`.stl`) or imports and refines existing meshes, saving outputs directly to `resources/` as configured in `config/model.yaml`:
 ```powershell
-# Convert 3D CAD STEP solid directly to CalculiX / Abaqus FEA mesh (.inp)
-python scripts\generate_mesh.py --input "resource\Leaf Spring.stp" --output "results\leaf_spring_from_cad.inp" --size 15.0
+# Default execution: reads config/model.yaml, converts CAD and saves directly to resources/leaf_spring_mesh.inp
+python scripts\generate_mesh.py
 
-# Load, inspect, and refine existing STL mesh to CalculiX .inp
-python scripts\generate_mesh.py --input "resource\Leaf Spring.stl" --output "results\leaf_spring_from_stl.inp" --size 12.0
+# Or specify custom input/output and element size:
+python scripts\generate_mesh.py --input "resources\Leaf Spring.stp" --output "resources\leaf_spring_mesh.inp" --size 12.0
 ```
 
 In any Python FEA solver script, import the decoupled pipeline with one line:
 ```python
 from generate_mesh import load_or_generate_mesh
 
-# Intelligently loads pre-existing mesh if present, or discretizes CAD if only CAD exists:
+# Reads model.yaml: loads pre-existing mesh in resources/ if present, or discretizes CAD automatically:
 mesh_data = load_or_generate_mesh()
 nodes = mesh_data["vertices"]      # (N, 3) coordinate array
 elements = mesh_data["triangles"]  # (M, 3) element connectivity array

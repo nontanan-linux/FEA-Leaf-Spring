@@ -14,11 +14,36 @@ model_metadata:
 # 1. CAD GEOMETRY SPECIFICATIONS & FILE ASSETS
 # -------------------------------------------------------------------------------
 cad_geometry:
+  storage_directory: "resources"         # Primary repository for CAD & generated meshes
   file_paths:
-    step_solid: "resource/Leaf Spring.stp"
-    iges_surface: "resource/Leaf Spring.igs"
-    stl_mesh: "resource/Leaf Spring.stl"
-    preview_render: "resource/leaf_spring_cad_model.jpg"
+    # Original Source CAD files
+    step_solid: "resources/Leaf Spring.stp"
+    iges_surface: "resources/Leaf Spring.igs"
+    preview_render: "resources/leaf_spring_cad_model.jpg"
+    
+    # Pre-existing Input Mesh (STL)
+    stl_input_mesh: "resources/Leaf Spring.stl"
+    
+    # Generated & Preprocessed FEA Mesh Artifacts (Saved to resources/)
+    generated_mesh_inp: "resources/leaf_spring_mesh.inp"
+    generated_mesh_stl: "resources/leaf_spring_mesh.stl"
+
+  # Mesh Ingestion & Preprocessing Pipeline Configuration
+  mesh_pipeline_config:
+    active_mesh_file: "resources/leaf_spring_mesh.inp"
+    fallback_cad_file: "resources/Leaf Spring.stp"
+    # Strategy:
+    #   'auto'         - Use active_mesh_file if exists in resources/, else discretize fallback_cad_file
+    #   'prefer_mesh'  - Always load pre-existing mesh (.inp or .stl)
+    #   'force_cad'    - Always re-discretize CAD solid (.stp)
+    import_strategy: "auto"
+    target_element_size_mm: 12.0
+    element_order: 1                     # 1 = Linear (S3/C3D4), 2 = Quadratic (S6/C3D10)
+    adaptive_refinement:
+      enabled: true
+      algorithm: "Rivara Longest-Edge Bisection"
+      max_edge_threshold_mm: 12.0
+      max_iterations: 5
   
   dimensions:
     total_span_mm: 1200.0                # Total eye-to-eye span length 2L (mm)

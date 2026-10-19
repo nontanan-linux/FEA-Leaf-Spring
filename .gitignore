@@ -25,3 +25,6 @@ desktop.ini
 
 # Jupyter
 .ipynb_checkpoints
+
+# Junction alias
+resources

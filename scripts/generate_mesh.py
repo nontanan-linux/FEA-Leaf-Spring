@@ -367,72 +367,114 @@ def load_or_generate_mesh(
     - Returns structured dictionary ready for FEA analysis.
     """
     # 1. Resolve defaults from config if available
+    # 1. Resolve defaults from config if available
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     if config_path is None:
-        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         cfg_candidate = os.path.join(base_dir, "config", "model.yaml")
         if os.path.isfile(cfg_candidate):
             config_path = cfg_candidate
-            
+
+    cfg = {}
     if config_path and HAS_YAML and os.path.isfile(config_path):
         with open(config_path, "r", encoding="utf-8") as f:
             cfg = yaml.safe_load(f)
-            if source_path is None:
-                # Prefer existing mesh if available, otherwise fallback to CAD STEP
-                stl_file = os.path.join(base_dir, cfg["cad_geometry"]["file_paths"]["stl_mesh"])
-                step_file = os.path.join(base_dir, cfg["cad_geometry"]["file_paths"]["step_solid"])
-                source_path = stl_file if os.path.isfile(stl_file) else step_file
-            if element_size is None and "mesh_refinement" in cfg:
-                element_size = cfg["mesh_refinement"].get("max_edge_length_threshold_mm", 12.0)
-                
+
+    # Resolve paths from config/model.yaml
+    cad_geo_cfg = cfg.get("cad_geometry", {})
+    file_paths_cfg = cad_geo_cfg.get("file_paths", {})
+    pipeline_cfg = cad_geo_cfg.get("mesh_pipeline_config", {})
+
+    active_mesh_rel = pipeline_cfg.get("active_mesh_file", file_paths_cfg.get("generated_mesh_inp", "resources/leaf_spring_mesh.inp"))
+    fallback_cad_rel = pipeline_cfg.get("fallback_cad_file", file_paths_cfg.get("step_solid", "resources/Leaf Spring.stp"))
+    stl_input_rel = file_paths_cfg.get("stl_input_mesh", "resources/Leaf Spring.stl")
+
+    active_mesh_path = os.path.normpath(os.path.join(base_dir, active_mesh_rel))
+    fallback_cad_path = os.path.normpath(os.path.join(base_dir, fallback_cad_rel))
+    stl_input_path = os.path.normpath(os.path.join(base_dir, stl_input_rel))
+
+    if element_size is None:
+        element_size = pipeline_cfg.get("target_element_size_mm", 12.0)
+
+    # Determine default output path in resources/
+    if output_cache_path is None:
+        output_cache_path = active_mesh_path
+
+    # Intelligent source path resolution:
     if source_path is None:
-        raise ValueError("No source geometry or mesh path provided and could not resolve from config.")
-        
+        strategy = pipeline_cfg.get("import_strategy", "auto")
+        if strategy == "auto":
+            # If generated/cached mesh already exists in resources/, load it directly!
+            if os.path.isfile(active_mesh_path):
+                source_path = active_mesh_path
+            elif os.path.isfile(fallback_cad_path):
+                source_path = fallback_cad_path
+            elif os.path.isfile(stl_input_path):
+                source_path = stl_input_path
+            else:
+                raise FileNotFoundError(f"Neither mesh nor CAD files found in {base_dir}")
+        elif strategy == "prefer_mesh":
+            source_path = active_mesh_path if os.path.isfile(active_mesh_path) else stl_input_path
+        elif strategy == "force_cad":
+            source_path = fallback_cad_path
+        else:
+            source_path = active_mesh_path if os.path.isfile(active_mesh_path) else fallback_cad_path
+
     ext = os.path.splitext(source_path)[1].lower()
     is_cad = ext in [".stp", ".step", ".igs", ".iges", ".brep"]
     is_mesh = ext in [".stl", ".inp", ".msh", ".ply", ".obj"]
-    
+
     print("=" * 70)
     print(" FEA PREPROCESSING & MESH PIPELINE")
     print("=" * 70)
+    print(f"Config File: {config_path if config_path else 'None'}")
     print(f"Source Path: {source_path}")
     print(f"File Category: {'CAD Solid/Surface Geometry' if is_cad else 'Pre-Discretized Mesh'}")
-    
+
     if is_mesh:
         print("-> Loading pre-existing mesh file (bypassing CAD discretization)...")
         v, t = load_mesh_file(source_path)
         was_generated = False
     elif is_cad:
         print("-> Discretizing CAD solid geometry with Gmsh / OpenCASCADE...")
-        v, t = mesh_cad_file(source_path, element_size_min=element_size*0.8, element_size_max=element_size*1.5)
+        v, t = mesh_cad_file(source_path, element_size_min=element_size * 0.8, element_size_max=element_size * 1.5)
         was_generated = True
     else:
         raise ValueError(f"Unrecognized file extension: {ext}")
-        
-    if refine and element_size is not None:
+
+    if refine and element_size is not None and not (is_mesh and ext == ".inp"):
         print(f"-> Applying Rivara bisection refinement (threshold: {element_size} mm)...")
         v, t = refine_longest_edge(v, t, max_edge_len=element_size)
-        
+
     # Compute mesh diagnostics
     diag = calculate_mesh_diagnostics(v, t)
     print(f"-> Mesh Verification: {diag['num_nodes']:,} nodes, {diag['num_elements']:,} elements")
     print(f"   Span: X={diag['span_dims'][0]:.1f}mm, Y={diag['span_dims'][1]:.1f}mm, Z={diag['span_dims'][2]:.1f}mm")
     print(f"   Aspect Ratio: mean={diag['mean_aspect_ratio']:.2f}, max={diag['max_aspect_ratio']:.2f}")
-    
-    # Save cache if output path requested
-    if output_cache_path:
+
+    # Save generated/refined mesh into resources/
+    if output_cache_path and (was_generated or not os.path.isfile(output_cache_path)):
         out_ext = os.path.splitext(output_cache_path)[1].lower()
         if out_ext == ".inp":
             export_inp(v, t, output_cache_path)
         elif out_ext == ".stl":
             export_stl(v, t, output_cache_path)
-            
+
+        # Also save complementary STL if generating .inp
+        if out_ext == ".inp":
+            stl_cache_path = os.path.splitext(output_cache_path)[0] + ".stl"
+            try:
+                export_stl(v, t, stl_cache_path)
+            except Exception as e:
+                pass
+
     print("=" * 70)
     return {
         "vertices": v,
         "triangles": t,
         "diagnostics": diag,
         "source_file": source_path,
-        "is_generated_from_cad": was_generated
+        "is_generated_from_cad": was_generated,
+        "cached_output_path": output_cache_path
     }
 
 
@@ -445,15 +487,15 @@ def main():
     )
     parser.add_argument(
         "--input", "-i", type=str, default=None,
-        help="Path to CAD file (.stp/.step) or existing mesh file (.stl/.inp)"
+        help="Path to CAD file (.stp/.step) or existing mesh file (.stl/.inp). Defaults to model.yaml"
     )
     parser.add_argument(
         "--output", "-o", type=str, default=None,
-        help="Path to export generated mesh (.inp or .stl)"
+        help="Path to export generated mesh (.inp or .stl). Defaults to resources/leaf_spring_mesh.inp"
     )
     parser.add_argument(
-        "--size", "-s", type=float, default=12.0,
-        help="Target element size or max edge length in mm (default: 12.0 mm)"
+        "--size", "-s", type=float, default=None,
+        help="Target element size or max edge length in mm (default: read from model.yaml or 12.0 mm)"
     )
     parser.add_argument(
         "--no-refine", action="store_true",
@@ -463,33 +505,19 @@ def main():
         "--config", "-c", type=str, default=None,
         help="Path to model.yaml configuration file"
     )
-    
+
     args = parser.parse_args()
-    
-    # Set default paths if not provided
-    scripts_dir = os.path.dirname(os.path.abspath(__file__))
-    project_dir = os.path.dirname(scripts_dir)
-    
-    input_path = args.input
-    if input_path is None:
-        # Check default locations
-        cad_candidate = os.path.join(project_dir, "resource", "Leaf Spring.stp")
-        stl_candidate = os.path.join(project_dir, "resource", "Leaf Spring.stl")
-        input_path = cad_candidate if os.path.isfile(cad_candidate) else stl_candidate
-        
-    output_path = args.output
-    if output_path is None:
-        output_path = os.path.join(project_dir, "results", "generated_leaf_spring_mesh.inp")
-        
+
     mesh_data = load_or_generate_mesh(
-        source_path=input_path,
-        output_cache_path=output_path,
+        source_path=args.input,
+        output_cache_path=args.output,
         element_size=args.size,
         refine=not args.no_refine,
         config_path=args.config
     )
-    
-    print(f"\n[DONE] Pipeline completed successfully. Output ready for FEA solver.")
+
+    print(f"\n[DONE] Pipeline completed successfully.")
+    print(f"Target Mesh stored at: {mesh_data['cached_output_path']}")
 
 if __name__ == "__main__":
     main()
