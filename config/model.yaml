@@ -1,0 +1,134 @@
+# ===============================================================================
+# CAD GEOMETRY & MESH CONFIGURATION (model.yaml)
+# Project: Automotive Suspension Leaf Spring FEA Study
+# Program: Master of Engineering (M.Eng) - Finite Element Method in Engineering
+# Instructor: Asst. Prof. Dr. Monsak Pimsarn
+# ===============================================================================
+
+model_metadata:
+  model_name: "Automotive Semi-Elliptic Leaf Spring CAD & Finite Element Mesh"
+  cad_source: "Master Leaf Assembly CAD Solid Geometry"
+  version: "1.0.0"
+
+# -------------------------------------------------------------------------------
+# 1. CAD GEOMETRY SPECIFICATIONS & FILE ASSETS
+# -------------------------------------------------------------------------------
+cad_geometry:
+  file_paths:
+    step_solid: "resource/Leaf Spring.stp"
+    iges_surface: "resource/Leaf Spring.igs"
+    stl_mesh: "resource/Leaf Spring.stl"
+    preview_render: "resource/leaf_spring_cad_model.jpg"
+  
+  dimensions:
+    total_span_mm: 1200.0                # Total eye-to-eye span length 2L (mm)
+    semi_span_mm: 600.0                  # Half-span cantilever length L (mm)
+    leaf_width_mm: 60.0                  # Width of the spring steel plate b (mm)
+    baseline_thickness_mm: 12.0          # Baseline uniform thickness t (mm)
+    free_camber_height_mm: 100.0         # Free arch height h (mm)
+    camber_equation: "y(x) = h * (1.0 - (2.0 * x / span)^2)"
+    
+    eye_specifications:
+      nominal_eye_inner_diameter_mm: 30.0 # Standard chassis bushing pin interface
+      cad_front_eye_inner_radius_mm: 6.58 # Solid CAD feature radius (mm)
+      cad_front_eye_bore_length_mm: 54.35 # Solid CAD inner cylinder bore length (mm)
+      front_eye_center_x_mm: -375.0       # Longitudinal coordinate of front eye center
+      rear_eye_center_x_mm: 375.0         # Longitudinal coordinate of rear eye center
+
+    axle_clamping_seat:
+      length_mm: 100.0                   # Clamping seat zone along spring length
+      width_mm: 60.0                     # Clamping seat width
+      surface_area_mm2: 6000.0           # Effective contact area (60 x 100 mm)
+      x_center_mm: 0.0                   # Center coordinate at leaf apex
+
+# -------------------------------------------------------------------------------
+# 2. FINITE ELEMENT MESH SPECIFICATIONS
+# -------------------------------------------------------------------------------
+mesh_specifications:
+  element_types:
+    solid_continuum_3d: "C3D10 (10-Node Quadratic Tetrahedral) / C3D8 (8-Node Hexahedral)"
+    surface_discretization: "CTRIA3 / Linear & Quadratic Triangular Surface Elements"
+    beam_frame_formulation: "2-Node Cubic Hermite Beam Elements (Curved local formulation)"
+  
+  mesh_statistics:
+    surface_elements_count: 14996        # High-resolution surface triangular elements
+    surface_nodes_count: 13448           # Discrete coordinate nodes
+    continuum_solid_elements_est: 28400  # Volumetric solid continuum discretization
+    continuum_nodes_est: 22500           # Volumetric solid degrees of freedom nodes
+
+  mesh_quality_metrics:
+    average_jacobian_ratio: 0.88         # Target > 0.70 (Excellent element distortion)
+    minimum_jacobian_ratio: 0.72
+    maximum_aspect_ratio: 3.4            # Target < 5.0 for high stress gradients
+    maximum_warpage_angle_deg: 11.8      # Target < 20 deg
+    quad_quality_percentage: 96.4        # Percentage of elements passing strict criteria
+
+# -------------------------------------------------------------------------------
+# 3. REFINEMENT ALGORITHM & MESH CONTROLS
+# -------------------------------------------------------------------------------
+mesh_refinement:
+  algorithm: "Rivara Longest-Edge Bisection"
+  max_edge_length_threshold_mm: 12.0     # Bisect any triangular edge exceeding 12 mm
+  refinement_iterations: 5               # Maximum adaptive passes
+  aspect_ratio_preservation: true        # Prevents obtuse/degenerate triangle angles
+  
+  critical_refinement_zones:
+    front_eye_bore:
+      description: "Inner cylindrical bore surface carrying Fixed Support constraint"
+      element_density: "Fine quadratic boundary refinement"
+    rear_eye_bore:
+      description: "Inner bore carrying Shackle Roller constraint"
+      element_density: "Fine quadratic boundary refinement"
+    central_clamping_transition:
+      description: "Axle seat edges with steep bending moment and shear gradients"
+      element_density: "Progressive gradient mesh transition"
+
+# -------------------------------------------------------------------------------
+# 4. VISUALIZATION & CAD RENDERING SETTINGS
+# -------------------------------------------------------------------------------
+visualization_rendering:
+  engine: "Open3D & Matplotlib Agg"
+  background_color_rgb: [0.96, 0.97, 0.99]
+  leaf_spring_body_color_rgb: [0.72, 0.75, 0.82] # Authentic structural steel
+  rebound_clips_color_rgb: [0.76, 0.78, 0.65]    # Bronze / brass tinted retention clips
+  fixed_support_highlight_color_rgb: [0.0, 0.95, 1.0] # High-visibility cyan highlight
+  wireframe_overlay:
+    enabled: true
+    line_color: "Dark grey / Black"
+    line_width: 1.0
+  camera_presets:
+    standard_isometric:
+      front_vector: [-0.68, 0.45, 0.58]
+      up_vector: [0.38, 0.89, -0.24]
+      lookat_target: [0.0, -15.0, 0.0]
+      zoom_level: 0.72
+    closeup_front_eye:
+      zoom_factor: 3.0                   # 3x magnification for Detail A
+
+# -------------------------------------------------------------------------------
+# 5. MODEL REVISIONS & PARAMETRIC VARIANTS
+# -------------------------------------------------------------------------------
+model_revisions:
+  baseline_uniform_model:
+    name: "Baseline Uniform Thickness Leaf Spring"
+    thickness_profile_type: "Constant Rectangular"
+    thickness_center_mm: 12.0
+    thickness_eye_mm: 12.0
+    mass_kg: 6.91
+    stiffness_n_per_mm: 49.17
+    static_deflection_mm: 167.59
+    static_max_von_mises_mpa: 1716.78
+    bump_max_von_mises_mpa: 3433.56
+    bump_center_deflection_mm: 335.19
+
+  revised_parabolic_tapered_model:
+    name: "Optimized Parabolic Tapered Leaf Spring"
+    thickness_profile_type: "Parabolic Taper (Constant Stress Profile)"
+    thickness_center_mm: 14.5            # Thicker section at high-moment clamp zone
+    thickness_eye_mm: 7.5                # Tapered section at low-moment shackle ends
+    thickness_equation: "t(x) = sqrt(t_center^2 - (t_center^2 - t_eye^2) * abs(x) / L)"
+    mass_kg: 6.98                        # Mass-neutral (+1.0% mass variance)
+    stiffness_n_per_mm: 71.70            # +45.8% increase in stiffness
+    bump_center_deflection_mm: 229.87    # -31.4% reduction in downward deflection
+    bump_max_von_mises_mpa: 2352.28      # -31.5% reduction in peak Von Mises stress
+    stress_efficiency: "Uniform parabolically distributed longitudinal bending stress"

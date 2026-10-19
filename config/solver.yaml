@@ -1,0 +1,146 @@
+# ===============================================================================
+# FINITE ELEMENT SOLVER CONFIGURATION (solver.yaml)
+# Project: Automotive Suspension Leaf Spring FEA Study
+# Program: Master of Engineering (M.Eng) - Finite Element Method in Engineering
+# Instructor: Asst. Prof. Dr. Monsak Pimsarn
+# ===============================================================================
+
+solver_metadata:
+  solver_name: "Automotive Leaf Spring FEA Direct Solver"
+  environment: "Python NumPy/SciPy FEM & PrePoMax / CalculiX (Spooles Direct Sparse)"
+  analysis_type: "3D Linear Static Elastostatics (Small Displacement Formulation)"
+  governing_equation: "[K]{u} = {F}"
+  version: "1.0.0"
+
+# -------------------------------------------------------------------------------
+# 1. UNIT SYSTEM
+# -------------------------------------------------------------------------------
+units:
+  system: "Metric SI (mm, N, MPa, tonne/mm^3)"
+  length: "mm"
+  force: "N"
+  stress_pressure: "MPa (N/mm^2)"
+  mass: "tonne (1 tonne = 1000 kg)"
+  density: "tonne/mm^3 (7.85e-9 tonne/mm^3 == 7850 kg/m^3)"
+  energy: "N*m (Joule)"
+  stiffness: "N/mm"
+
+# -------------------------------------------------------------------------------
+# 2. MATERIAL SPECIFICATION: 55Cr3 (SUP9 / SAE 5160 Spring Steel)
+# -------------------------------------------------------------------------------
+material:
+  name: "55Cr3 (SUP9 / SAE 5160)"
+  classification: "High-Strength Chromium-Manganese Spring Steel"
+  constitutive_model: "Linear Isotropic Elastic"
+  elastic_modulus_mpa: 206000.0          # Young's modulus E (206 GPa)
+  poissons_ratio: 0.29                   # Poisson's ratio nu
+  shear_modulus_mpa: 79844.96            # G = E / [2 * (1 + nu)]
+  density_kg_m3: 7850.0                  # Density rho (kg/m^3)
+  density_tonne_mm3: 7.85e-9             # Density for mm-N-tonne system
+  yield_strength_mpa: 1100.0             # Yield strength sigma_y (MPa)
+  ultimate_tensile_strength_mpa: 1280.0  # Tensile strength sigma_u (MPa)
+  fatigue_endurance_limit_mpa: 580.0     # Rotary bending fatigue limit (MPa)
+
+# -------------------------------------------------------------------------------
+# 3. NUMERICAL SOLUTION METHODS & LINEAR ALGEBRA
+# -------------------------------------------------------------------------------
+numerical_methods:
+  matrix_solver: "Direct Sparse Cholesky / LAPACK LU Factorization"
+  dofs_per_node:
+    frame_beam_2d: 3                     # [u_x, u_y, theta_z]
+    solid_continuum_3d: 3                # [u_x, u_y, u_z]
+  integration_scheme: "Full Gauss-Legendre Quadrature (2x2 / 3x3 Gauss Points)"
+  stiffness_matrix_type: "Symmetric Positive Definite (SPD)"
+  numerical_precision: "Float64 (Double Precision)"
+
+# -------------------------------------------------------------------------------
+# 4. BOUNDARY CONDITIONS & RESTRAINTS
+# -------------------------------------------------------------------------------
+boundary_conditions:
+  front_eye_restraint:
+    name: "Front Eye Rigid Chassis Pivot"
+    boundary_type: "Fixed Support (Encastre)"
+    scoping_entity: "Inner cylindrical bore surface (front eye, CAD r=6.58 mm, L=54.35 mm)"
+    prescribed_displacements:
+      u_x_mm: 0.0                        # Longitudinal translation locked
+      u_y_mm: 0.0                        # Vertical translation locked
+      u_z_mm: 0.0                        # Lateral translation locked
+    rotational_constraint: "Rigidly locked via 3D solid continuum elements / clamped pin"
+
+  rear_eye_restraint:
+    name: "Rear Eye Suspension Shackle Joint"
+    boundary_type: "Roller / Sliding Shackle Support"
+    scoping_entity: "Inner cylindrical bore surface (rear eye)"
+    prescribed_displacements:
+      u_x_mm: "FREE"                     # Free longitudinal translation for leaf elongation
+      u_y_mm: 0.0                        # Vertical translation locked (shackle reaction)
+      u_z_mm: 0.0                        # Lateral translation locked
+
+  axle_mounting_seat:
+    name: "Central Rear Axle Clamping Zone"
+    boundary_type: "U-Bolt Clamping Interface"
+    location_x_range_mm: [-50.0, 50.0]   # 100 mm clamping span at spring center
+    contact_width_mm: 60.0               # Leaf spring width
+    contact_area_mm2: 6000.0
+    load_transfer_method: "Kinematic coupling / Distributed surface traction"
+
+# -------------------------------------------------------------------------------
+# 5. MESH CONVERGENCE STUDY PARAMETERS
+# -------------------------------------------------------------------------------
+convergence_study:
+  target_convergence_metric: "Total Strain Energy U (N*m) and Peak Von Mises Stress"
+  asymptotic_convergence_tolerance_pct: 0.01  # Asymptotic error threshold (< 0.01%)
+  refinement_stages:
+    stage_1:
+      num_elements: 10
+      strain_energy_joules: 690.41
+      relative_error_pct: 0.016
+    stage_2:
+      num_elements: 20
+      strain_energy_joules: 690.49
+      relative_error_pct: 0.004
+    stage_3:
+      num_elements: 40
+      strain_energy_joules: 690.51
+      relative_error_pct: 0.001
+    stage_4:
+      num_elements: 80
+      strain_energy_joules: 690.52
+      relative_error_pct: 0.000
+    stage_5:
+      num_elements: 160
+      strain_energy_joules: 690.52
+      relative_error_pct: 0.000
+
+# -------------------------------------------------------------------------------
+# 6. SOLVER LOAD CASES
+# -------------------------------------------------------------------------------
+load_cases:
+  case_1_static:
+    vertical_force_n: -8240.40
+    horizontal_force_n: 0.0
+  case_2_bump_2g:
+    vertical_force_n: -16480.80
+    horizontal_force_n: 0.0
+  case_3_bump_braking:
+    vertical_force_n: -8240.40
+    horizontal_force_n: -3500.00
+  case_4_severe_bump_braking:
+    vertical_force_n: -16480.80
+    horizontal_force_n: -5000.00
+
+# -------------------------------------------------------------------------------
+# 7. POST-PROCESSING & STRESS EVALUATION
+# -------------------------------------------------------------------------------
+post_processing:
+  stress_criteria: "Von Mises Equivalent Stress (sigma_vm)"
+  deflection_tracking_node: "Axle center node (x = 0 mm, maximum downward vertical displacement)"
+  factor_of_safety_formula: "sigma_yield / sigma_vm_max"
+  results_output_dir: "../results"
+  output_figures:
+    fbd_diagram: "vehicle_dynamics_fbd.png"
+    fixed_support_model: "fixed_support_model.png"
+    mesh_boundary_conditions: "mesh_boundary_conditions.png"
+    mesh_3d_model: "mesh_model_3d.png"
+    convergence_curve: "mesh_convergence_study.png"
+    revision_comparison: "model_revision_comparison.png"

@@ -1,0 +1,111 @@
+# ===============================================================================
+# VEHICLE INFORMATION CONFIGURATION (vehicle_information.yaml)
+# Project: Automotive Suspension Leaf Spring FEA Study
+# Program: Master of Engineering (M.Eng) - Finite Element Method in Engineering
+# Instructor: Asst. Prof. Dr. Monsak Pimsarn
+# ===============================================================================
+
+project_metadata:
+  project_name: "Automotive Rear Leaf Spring Finite Element Analysis"
+  institution: "King Mongkut's Institute of Technology Ladkrabang (KMITL)"
+  vehicle_class: "Light Commercial Vehicle (LCV) / 1-Tonne Laden Commercial Pickup Truck"
+  author: "Nontanan (M.Eng Student)"
+  date: "2026-10-19"
+  version: "1.0.0"
+
+# -------------------------------------------------------------------------------
+# 1. VEHICLE MASS & GRAVITATIONAL PROPERTIES
+# -------------------------------------------------------------------------------
+mass_properties:
+  gross_vehicle_weight_kg: 2800.0        # GVW fully laden (kg)
+  curb_weight_kg: 1850.0                 # Unladen curb weight (kg)
+  payload_capacity_kg: 950.0             # Rated cargo and passenger capacity (kg)
+  gravitational_acceleration_m_s2: 9.81  # Gravitational constant g (m/s^2)
+  total_vehicle_weight_n: 27468.0        # Total Weight F_g = M * g (N)
+
+# -------------------------------------------------------------------------------
+# 2. VEHICLE CHASSIS & GEOMETRIC DIMENSIONS
+# -------------------------------------------------------------------------------
+dimensions:
+  wheelbase_m: 3.085                     # Wheelbase L_wb from front axle to rear axle (m)
+  front_track_width_m: 1.540             # Front axle wheel track T_f (m)
+  rear_track_width_m: 1.540              # Rear axle wheel track T_r (m)
+  center_of_gravity:
+    height_above_ground_m: 0.750         # CG height h_cg in laden condition (m)
+    dist_front_axle_to_cg_m: 1.851       # Longitudinal distance a = 0.60 * L_wb (m)
+    dist_rear_axle_to_cg_m: 1.234        # Longitudinal distance b = 0.40 * L_wb (m)
+
+# -------------------------------------------------------------------------------
+# 3. TIRE & ROAD INTERFACE
+# -------------------------------------------------------------------------------
+tire_and_road:
+  friction_coefficient_mu: 1.0           # Peak tire-road adhesion factor (dry asphalt)
+  rolling_radius_m: 0.365                # Tire loaded rolling radius (m)
+  tire_specification: "245/70 R16 Commercial All-Terrain"
+
+# -------------------------------------------------------------------------------
+# 4. SUSPENSION ARCHITECTURE & SPRING ALLOCATION
+# -------------------------------------------------------------------------------
+suspension_system:
+  layout_type: "Hotchkiss Drive with Longitudinal Semi-Elliptic Leaf Springs"
+  leaf_springs_per_axle: 2               # Left and right rear leaf springs
+  axle_mounting: "Over-slung (Leaf spring clamped above the rigid rear drive axle)"
+  shackle_orientation: "Rear swinging shackle (tension/compression shackle)"
+
+# -------------------------------------------------------------------------------
+# 5. STATIC AXLE LOAD DISTRIBUTION (LADEN STATE)
+# -------------------------------------------------------------------------------
+static_weight_distribution:
+  front_axle_ratio: 0.40                 # 40% static weight on front axle
+  rear_axle_ratio: 0.60                  # 60% static weight on rear axle
+  front_axle_static_load_n: 10987.20     # Total static force on front axle (N)
+  rear_axle_static_load_n: 16480.80      # Total static force on rear axle F_z_rear (N)
+  load_per_rear_spring_n: 8240.40        # Nominal static vertical load per leaf spring (N)
+
+# -------------------------------------------------------------------------------
+# 6. DYNAMIC OPERATING CONDITIONS & VEHICLE LOAD CASES
+# -------------------------------------------------------------------------------
+operating_cases:
+  case_1_static_vertical:
+    case_id: 1
+    description: "Nominal Static Laden Ride Condition"
+    dynamic_load_factor_g: 1.0
+    vertical_force_per_spring_n: -8240.40   # Downward reaction force at axle seat (N)
+    horizontal_force_per_spring_n: 0.0      # Braking/traction force (N)
+    lateral_force_per_spring_n: 0.0         # Cornering force (N)
+
+  case_2_dynamic_bump:
+    case_id: 2
+    description: "Peak Dynamic Bump Impact (2.0G Road Impact at Velocity)"
+    dynamic_impact_factor_k: 2.0
+    vertical_acceleration_m_s2: 19.62       # 2.0 * g
+    vertical_force_per_spring_n: -16480.80  # Peak dynamic normal force (N)
+    horizontal_force_per_spring_n: 0.0
+    lateral_force_per_spring_n: 0.0
+
+  case_3_braking_deceleration:
+    case_id: 3
+    description: "Emergency Braking with Longitudinal Load Transfer (0.8G Deceleration)"
+    deceleration_g: 0.8
+    deceleration_m_s2: 7.848                # a_x = 0.8 * g
+    weight_transfer_off_rear_n: 5342.24     # delta_W_brake = (M * a_x * h_cg) / L_wb
+    rear_axle_normal_force_under_braking_n: 11138.56 # F_z_rear_brake = F_z_rear - delta_W
+    total_rear_braking_traction_n: 11138.56 # F_x_rear_total = mu * F_z_rear_brake
+    braking_force_per_spring_n: 5569.28     # F_x_brake_per_spring = F_x_rear_total / 2
+    nominal_combined_braking_n: -3500.00    # Combined bump + braking evaluation force (N)
+
+  case_4_cornering_handling:
+    case_id: 4
+    description: "Steady-State Cornering with Lateral Load Transfer (0.7G Lateral Accel)"
+    lateral_acceleration_g: 0.7
+    lateral_acceleration_m_s2: 6.867        # a_y = 0.7 * g
+    lateral_weight_transfer_n: 5618.45      # delta_W_lat = (F_z_rear * a_y * h_cg) / (g * T_r)
+    outer_spring_vertical_force_n: 13858.85 # F_z_outer = (F_z_rear / 2) + delta_W_lat
+    outer_spring_cornering_force_n: 13858.85 # F_y_corner = mu * F_z_outer
+    inner_spring_vertical_force_n: 2621.95  # F_z_inner = (F_z_rear / 2) - delta_W_lat
+
+  case_5_severe_combined:
+    case_id: 5
+    description: "Severe Worst-Case Scenario: Dynamic Bump (2.0G) + Heavy Braking Traction"
+    vertical_force_per_spring_n: -16480.80  # Full 2.0G bump impact (N)
+    horizontal_force_per_spring_n: -5000.00 # High longitudinal braking traction (N)
