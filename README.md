@@ -11,6 +11,7 @@
 ```
 D:\M.eng\FiniteElementMethode\FEA_Leaf_Spring\
 ├── README.md                   # This project guide and execution instructions
+├── pyproject.toml              # Project packaging configuration & build metadata
 ├── requirements.txt            # Python package dependencies and versions
 ├── config\                     # Project configuration YAML files
 │   ├── vehicle_information.yaml# Vehicle specifications, masses, and dynamics
@@ -67,15 +68,25 @@ D:\M.eng\FiniteElementMethode\FEA_Leaf_Spring\
 - **Git**: For version control and cloning repository.
 - *(Optional)* **PrePoMax (v2.0.0+) / CalculiX**: For graphical FEA inspection and native solver export.
 
-### 2. Project Setup
-Clone or navigate to the project directory:
-```powershell
-# Clone the repository (if applicable)
-git clone <repository_url>
+### 2. Install from Git
 
-# Navigate into the project root directory
-cd D:\M.eng\FiniteElementMethode\FEA_Leaf_Spring
+You can set up the project using either **Option A (Clone & Local Workspace)** or **Option B (Direct Pip Install from Git)**:
+
+#### Option A: Clone Repository from Git (Recommended for Running Scripts & Viewing Visualizations)
+```powershell
+# Clone the repository
+git clone https://github.com/nontanan-linux/FEA-Leaf-Spring.git
+
+# Navigate into the project directory
+cd FEA-Leaf-Spring
 ```
+
+#### Option B: Direct Python Package Install from Git
+Install directly into your active Python environment via `pip`:
+```powershell
+pip install git+https://github.com/nontanan-linux/FEA-Leaf-Spring.git
+```
+*(Or in editable development mode from within the local workspace: `pip install -e .`)*
 
 ### 3. Create & Activate Virtual Environment (Recommended)
 Setting up an isolated virtual environment prevents package conflicts:

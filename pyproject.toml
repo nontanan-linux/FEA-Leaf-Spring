@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fea-leaf-spring"
+version = "1.0.0"
+description = "Finite Element Analysis and Dynamics of Automotive Leaf Spring Suspension System"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.24.0",
+    "scipy>=1.10.0",
+    "matplotlib>=3.7.0",
+    "open3d>=0.17.0",
+    "PyYAML>=6.0",
+    "pillow>=10.0.0",
+    "trimesh>=4.0.0",
+    "gmsh>=4.12.0",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/nontanan-linux/FEA-Leaf-Spring"
+"Repository" = "https://github.com/nontanan-linux/FEA-Leaf-Spring.git"
+
+[tool.setuptools]
+py-modules = []
+packages = ["scripts"]

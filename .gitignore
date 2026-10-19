@@ -8,6 +8,9 @@ env/
 venv/
 ENV/
 .venv
+*.egg-info/
+build/
+dist/
 
 # Temporary render files from Open3D & scripts
 scripts/temp_render/
