@@ -99,20 +99,28 @@ def generate_vehicle_fbd():
     ax.add_patch(body_poly)
 
     # -------------------------------------------------------------------------
-    # 3. Leaf Spring Assembly (Suspension at Rear Axle, Outside the Body Frame)
-    # Mounted underneath the chassis frame / under the bed sill
+    # 3. Leaf Spring Assembly (Suspension at Rear Axle, Mounted to Chassis Frame)
+    # Longer span, arching upwards to mount directly to the chassis frame (โครงรถ)
     # -------------------------------------------------------------------------
-    ls_span = 0.48
-    ls_x = np.linspace(x_rear - ls_span, x_rear + ls_span, 60)
-    # Master leaf arch (underslung/semi-elliptic camber)
-    ls_camber = 0.08
-    ls_y_master = (r_wheel - 0.04) + ls_camber * (((ls_x - x_rear) / ls_span)**2 - 1.0)
+    ls_span = 0.65
+    y_center = 0.40          # Axle center height
+    ls_camber = 0.085        # Upward curvature to reach chassis frame
+    ls_x = np.linspace(x_rear - ls_span, x_rear + ls_span, 80)
+    # Master leaf curves upwards from axle to frame brackets
+    ls_y_master = y_center + ls_camber * ((ls_x - x_rear) / ls_span)**2
     ax.plot(ls_x, ls_y_master, color='#dc2626', lw=4.5, zorder=6, label='Leaf Spring Assembly')
 
     # Secondary graduated leaf
-    ls_x_sub = np.linspace(x_rear - ls_span * 0.72, x_rear + ls_span * 0.72, 40)
-    ls_y_sub = ls_y_master[10:50] - 0.022
+    ls_span_sub = 0.46
+    ls_x_sub = np.linspace(x_rear - ls_span_sub, x_rear + ls_span_sub, 50)
+    ls_y_sub = (y_center - 0.020) + (ls_camber * 0.90) * ((ls_x_sub - x_rear) / ls_span)**2
     ax.plot(ls_x_sub, ls_y_sub, color='#991b1b', lw=3.2, zorder=6)
+
+    # Third graduated leaf
+    ls_span_sub3 = 0.28
+    ls_x_sub3 = np.linspace(x_rear - ls_span_sub3, x_rear + ls_span_sub3, 30)
+    ls_y_sub3 = (y_center - 0.038) + (ls_camber * 0.80) * ((ls_x_sub3 - x_rear) / ls_span)**2
+    ax.plot(ls_x_sub3, ls_y_sub3, color='#7f1d1d', lw=2.2, zorder=6)
 
     # Spring Eyes (Front Fixed Eye & Rear Shackle Eye)
     y_front_eye = ls_y_master[0]
@@ -120,20 +128,26 @@ def generate_vehicle_fbd():
     ax.scatter([x_rear - ls_span], [y_front_eye], color='#991b1b', edgecolor='#450a0a', s=70, lw=1.5, zorder=7)
     ax.scatter([x_rear + ls_span], [y_rear_eye], color='#991b1b', edgecolor='#450a0a', s=70, lw=1.5, zorder=7)
 
-    # Chassis Hanger Brackets & Rear Shackle Link
-    # Front hanger bracket from chassis sill to front eye
-    ax.plot([x_rear - ls_span, x_rear - ls_span], [y_belly, y_front_eye], color='#475569', lw=2.5, zorder=5)
-    # Rear shackle link
-    ax.plot([x_rear + ls_span, x_rear + ls_span], [y_belly, y_rear_eye], color='#475569', lw=2.5, zorder=5)
+    # Chassis Frame Rail & Mounting Brackets
+    y_frame = 0.51
+    ax.plot([x_rear - ls_span - 0.12, x_rear + ls_span + 0.08], [y_frame, y_frame],
+            color='#334155', lw=4.5, zorder=5)
+    ax.text(x_rear + 0.28, y_frame + 0.035, 'Chassis Frame Rail',
+            fontsize=9, fontweight='bold', color='#334155', zorder=6)
 
-    # Axle Clamp / U-Bolt Saddle Block
-    axle_clamp = patches.Rectangle((x_rear - 0.09, r_wheel - 0.09), 0.18, 0.09,
-                                   facecolor='#475569', edgecolor='#1e293b', lw=1.5, zorder=7)
+    # Front fixed hanger bracket attached from chassis frame to front eye
+    ax.plot([x_rear - ls_span, x_rear - ls_span], [y_frame, y_front_eye], color='#1e293b', lw=3.5, zorder=5)
+    # Rear shackle link pivoting from chassis frame to rear eye
+    ax.plot([x_rear + ls_span, x_rear + ls_span], [y_frame, y_rear_eye], color='#1e293b', lw=3.5, zorder=5)
+
+    # Axle Clamp / U-Bolt Saddle Block on Rear Axle
+    axle_clamp = patches.Rectangle((x_rear - 0.08, y_center - 0.05), 0.16, 0.08,
+                                   facecolor='#334155', edgecolor='#0f172a', lw=1.5, zorder=7)
     ax.add_patch(axle_clamp)
 
     # Leaf Spring Annotation
     ax.annotate('Rear Leaf Spring Assembly\n(Subject FEA Component)',
-                xy=(x_rear - 0.35, y_front_eye), xytext=(x_rear - 1.05, 0.88),
+                xy=(x_rear - 0.32, y_center + 0.04), xytext=(x_rear - 1.05, 0.90),
                 fontsize=10.5, fontweight='bold', color='#991b1b',
                 arrowprops=dict(arrowstyle='->', color='#dc2626', lw=1.8, connectionstyle='arc3,rad=-0.12'),
                 bbox=dict(boxstyle='round,pad=0.4', facecolor='#fef2f2', edgecolor='#f87171', lw=1.2), zorder=9)
@@ -172,8 +186,9 @@ def generate_vehicle_fbd():
     # Total Weight Vector W at CG
     ax.annotate('', xy=(x_cg, 0.12), xytext=(x_cg, y_cg),
                 arrowprops=dict(facecolor='#d97706', edgecolor='#92400e', width=3.5, headwidth=11), zorder=8)
-    ax.text(x_cg + 0.12, 0.42, 'Total Weight $W = M \\cdot g$\n$W = 27,468.0\\text{ N}$\n(GVW = 2,800 kg)',
-            fontsize=10.5, fontweight='bold', color='#92400e',
+    # Total Weight text box placed IN FRONT OF (to the left of) the downward arrow
+    ax.text(x_cg - 0.14, 0.42, 'Total Weight $W = M \\cdot g$\n$W = 27,468.0\\text{ N}$\n(GVW = 2,800 kg)',
+            ha='right', va='center', fontsize=10.5, fontweight='bold', color='#92400e',
             bbox=dict(boxstyle='round,pad=0.4', facecolor='#fffbeb', edgecolor='#fcd34d', lw=1.2), zorder=9)
 
     # Front Axle Reaction R_f
