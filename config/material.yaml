@@ -1,0 +1,166 @@
+# ===============================================================================
+# MATERIAL PROPERTIES CONFIGURATION (material.yaml)
+# Project: Automotive Suspension Leaf Spring FEA Study
+# Program: Master of Engineering (M.Eng) - Finite Element Method in Engineering
+# Instructor: Asst. Prof. Dr. Monsak Pimsarn
+# ===============================================================================
+
+material_database_metadata:
+  database_name: "Automotive Suspension Materials Database"
+  standard_references:
+    - "JIS G 4801: Spring Steels (SUP9 / SUP9A)"
+    - "SAE J403 / SAE 5160: Chromium Spring Steel"
+    - "DIN EN 10089: 55Cr3 (Material Number 1.7176)"
+    - "ISO 683-14: Heat-treated steels, alloy steels and free-cutting steels - Part 14: Hot-rolled steels for quenched and tempered springs"
+  version: "1.0.0"
+  selected_primary_material: "55Cr3_SUP9_SAE5160"
+
+# -------------------------------------------------------------------------------
+# 1. PRIMARY LEAF SPRING MATERIAL: 55Cr3 (SUP9 / SAE 5160)
+# -------------------------------------------------------------------------------
+55Cr3_SUP9_SAE5160:
+  common_names:
+    commercial: "55Cr3"
+    jis_equivalent: "SUP9"
+    sae_equivalent: "SAE 5160"
+    din_number: "1.7176"
+    aisi_uns: "G51600"
+  
+  classification: "High-Strength Chromium-Manganese Spring Alloy Steel"
+  heat_treatment_condition: "Quenched and Tempered (Oil quenched 850°C, Tempered 460-500°C)"
+  surface_finish: "Shot-peened (Residual compressive surface stress: -400 to -600 MPa)"
+  
+  # Constitutive Elastic Model
+  constitutive_model: "Linear Isotropic Elastic"
+  
+  elastic_constants:
+    youngs_modulus_e:
+      value_mpa: 206000.0             # 206 GPa
+      value_pa: 2.06e11
+      units: "MPa (N/mm^2)"
+    poissons_ratio_nu:
+      value: 0.29
+      units: "dimensionless"
+    shear_modulus_g:
+      value_mpa: 79844.96             # G = E / [2 * (1 + nu)]
+      units: "MPa (N/mm^2)"
+    bulk_modulus_k:
+      value_mpa: 163492.06            # K = E / [3 * (1 - 2*nu)]
+      units: "MPa (N/mm^2)"
+
+  mass_density:
+    density_kg_m3: 7850.0             # Standard SI (kg/m^3)
+    density_tonne_mm3: 7.85e-9        # FEA Consistent Unit System (tonne/mm^3)
+    units_fea: "tonne/mm^3"
+
+  strength_limits:
+    yield_strength_sigma_y:
+      value_mpa: 1100.0               # 0.2% Offset proof stress R_p0.2
+      units: "MPa (N/mm^2)"
+    ultimate_tensile_strength_sigma_u:
+      value_mpa: 1280.0               # Tensile strength R_m
+      units: "MPa (N/mm^2)"
+    compressive_yield_strength_mpa: 1100.0
+    shear_yield_strength_mpa: 635.1   # tau_y = sigma_y / sqrt(3) (Von Mises criterion)
+    fracture_toughness_k1c_mpa_sqrt_m: 65.0
+    elongation_at_break_pct: 10.0     # Minimum plastic elongation A5 (%)
+    reduction_of_area_pct: 35.0
+
+  hardness:
+    rockwell_c: 46.0                  # Typical hardness range: 44 - 48 HRC
+    brinell_hbw: 430.0
+
+  fatigue_properties:
+    endurance_limit_reversed_bending_mpa: 580.0 # Fully reversed stress ratio R = -1
+    endurance_limit_pulsating_mpa: 850.0        # Stress ratio R = 0.1 (leaf spring typical)
+    wohler_basquin_parameters:
+      fatigue_strength_coefficient_sigma_f_prime_mpa: 1850.0
+      fatigue_strength_exponent_b: -0.09
+      fatigue_ductility_coefficient_epsilon_f_prime: 0.45
+      fatigue_ductility_exponent_c: -0.58
+
+  thermal_properties:
+    thermal_conductivity_w_m_k: 46.6
+    coefficient_of_thermal_expansion_per_k: 1.15e-5 # 11.5 um/(m*K)
+    specific_heat_capacity_j_kg_k: 460.0
+
+  chemical_composition_pct:
+    carbon_c: 0.55                    # Range: 0.52 - 0.60 %
+    chromium_cr: 0.85                 # Range: 0.70 - 1.00 %
+    manganese_mn: 0.85                # Range: 0.70 - 1.00 %
+    silicon_si: 0.35                  # Range: 0.25 - 0.50 %
+    phosphorus_p_max: 0.030
+    sulfur_s_max: 0.030
+
+# -------------------------------------------------------------------------------
+# 2. FASTENER & HARDWARE STEEL: AISI 4140 / SCM440 (U-Bolts & Chassis Pivot Pin)
+# -------------------------------------------------------------------------------
+fastener_steel_grade_10_9:
+  common_names:
+    commercial: "AISI 4140 / SCM440"
+    iso_fastener_class: "Property Class 10.9"
+  classification: "Chromium-Molybdenum High-Tensile Quenched & Tempered Fastener Steel"
+  application: "Axle U-Bolts, Centre Bolt, and Front Eye Pivot Pin"
+  
+  elastic_constants:
+    youngs_modulus_mpa: 210000.0
+    poissons_ratio: 0.30
+    shear_modulus_mpa: 80769.23
+    density_kg_m3: 7850.0
+    density_tonne_mm3: 7.85e-9
+
+  strength_limits:
+    yield_strength_mpa: 940.0
+    ultimate_tensile_strength_mpa: 1040.0
+    elongation_pct: 12.0
+    hardness_hrc: 34.0
+
+# -------------------------------------------------------------------------------
+# 3. BUSHING ELASTOMER: Polyurethane / NR Rubber (Eye Isolator Bushings)
+# -------------------------------------------------------------------------------
+suspension_bushing_elastomer:
+  common_names:
+    commercial: "Shore 75A Polyurethane / Natural Rubber (NR)"
+  classification: "Incompressible Elastomeric Suspension Isolator"
+  application: "Front & Rear Eye Bushings (Vibration damping and compliance)"
+  
+  linear_elastic_surrogate:
+    youngs_modulus_mpa: 25.0
+    poissons_ratio: 0.485             # Near incompressibility surrogate
+    density_kg_m3: 1150.0
+    density_tonne_mm3: 1.15e-9
+
+  hyperelastic_mooney_rivlin_constants:
+    c10_mpa: 2.20
+    c01_mpa: 0.55
+    d1_per_mpa: 0.005
+
+# -------------------------------------------------------------------------------
+# 4. LIGHTWEIGHT COMPOSITE ALTERNATIVE: E-Glass / Epoxy Composite (GFRP)
+# -------------------------------------------------------------------------------
+composite_leaf_spring_gfrp:
+  common_names:
+    commercial: "Unidirectional E-Glass / Epoxy Prepreg (GFRP)"
+  classification: "Orthotropic Fiber-Reinforced Polymer Composite"
+  application: "Lightweight High-Efficiency Monoleaf Suspension (Research Variant)"
+  mass_reduction_potential_pct: 65.0   # Weight saving compared to spring steel
+  
+  orthotropic_elastic_constants:
+    e1_longitudinal_mpa: 43000.0      # Fiber direction modulus
+    e2_transverse_mpa: 12000.0        # Matrix direction modulus
+    e3_through_thickness_mpa: 12000.0
+    nu12_major_poissons_ratio: 0.28
+    nu23_poissons_ratio: 0.38
+    nu13_poissons_ratio: 0.28
+    g12_in_plane_shear_mpa: 4500.0
+    g23_shear_mpa: 3800.0
+    g13_shear_mpa: 4500.0
+    density_kg_m3: 1950.0
+    density_tonne_mm3: 1.95e-9
+
+  strength_limits:
+    longitudinal_tensile_strength_x_t_mpa: 1150.0
+    longitudinal_compressive_strength_x_c_mpa: 800.0
+    transverse_tensile_strength_y_t_mpa: 45.0
+    transverse_compressive_strength_y_c_mpa: 140.0
+    in_plane_shear_strength_s_mpa: 75.0

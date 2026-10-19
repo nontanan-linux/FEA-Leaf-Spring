@@ -14,7 +14,8 @@ D:\M.eng\FiniteElementMethode\FEA_Leaf_Spring\
 ├── config\                     # Project configuration YAML files
 │   ├── vehicle_information.yaml# Vehicle specifications, masses, and dynamics
 │   ├── solver.yaml             # Solver methods, units, material, BCs, and load cases
-│   └── model.yaml              # CAD geometry, mesh parameters, and model revisions
+│   ├── model.yaml              # CAD geometry, mesh parameters, and model revisions
+│   └── material.yaml           # Comprehensive material properties database (55Cr3, Fasteners, Bushings, GFRP)
 ├── resource\                   # 3D CAD & Geometry files
 │   ├── Leaf Spring.stp         # 3D STEP solid model for CAD/PrePoMax import
 │   ├── Leaf Spring.igs         # IGES format
