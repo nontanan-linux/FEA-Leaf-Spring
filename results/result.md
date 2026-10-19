@@ -244,6 +244,57 @@ Mesh convergence was evaluated across 5 mesh refinement stages under static load
 
 ---
 
+### 4.6 ANSYS Workbench Mechanical 7-Solution Comprehensive Evaluation
+To match standard automotive suspension engineering reporting practiced in ANSYS Workbench Mechanical simulations, all 7 primary solution fields were evaluated under the static design ride condition ($F_v = -8,240.40\text{ N}$) and dynamic bump ($F_v = -16,480.80\text{ N}$):
+
+![Figure 7: ANSYS Workbench Mechanical Standard 7-Solution Post-Processing Dashboard](ansys_workbench_solutions.png)
+*Figure 7: ANSYS Workbench Mechanical 7-solution post-processing dashboard for the automotive semi-elliptic leaf spring under normal static laden load ($F_v = -8,240.40\text{ N}$). Illustrates (1) Total Deformation, (2) Directional Deformation in Y-axis, (3) Equivalent Elastic Strain, (4) Equivalent Von Mises Stress, (5) Maximum Principal Stress, (6) Maximum Shear Stress, (7) Strain Energy distribution, and (8) Executive Solution Summary Dashboard with zero external watermarks.*
+
+#### Breakdown of the 7 ANSYS Solution Quantities:
+
+1. **Total Deformation ($U_{\text{total}}$):**
+   $$U_{\text{total}} = \sqrt{u_x^2 + u_y^2 + u_z^2}$$
+   Measures the total resultant vector displacement. Under normal static load, maximum total deflection is **$167.59\text{ mm}$** occurring at the axle center seat ($x = 0$), while the front fixed eye remains rigidly constrained ($0.00\text{ mm}$) and the rear eye displaces longitudinally by $23.40\text{ mm}$ to accommodate flattening. Under 2.0G bump impact, total deformation increases linearly to **$335.19\text{ mm}$**.
+
+2. **Directional Deformation [Y-Axis] ($U_y$):**
+   $$U_y = u_y(x)$$
+   Tracks downward vertical deflection along the vehicle suspension ride and jounce axis. Peak vertical sag reaches **$-167.59\text{ mm}$** (static) and **$-335.19\text{ mm}$** (2.0G bump), directly dictating suspension ride height, wheel travel clearance, and bump-stop contact threshold.
+
+3. **Equivalent Elastic Strain ($\varepsilon_{\text{eq}}$):**
+   $$\varepsilon_{\text{eq}} = \frac{1}{1+\nu} \sqrt{\frac{1}{2}\left[(\varepsilon_1 - \varepsilon_2)^2 + (\varepsilon_2 - \varepsilon_3)^2 + (\varepsilon_3 - \varepsilon_1)^2\right]} \approx \frac{\sigma_{\text{vm}}}{E}$$
+   Evaluates distortion elastic strain in the 55Cr3 spring steel matrix ($E = 206,000\text{ MPa}$). Peak equivalent strain reaches **$8,333.9\text{ }\mu\varepsilon$** ($0.008334\text{ mm/mm}$) under static load and **$16,667.8\text{ }\mu\varepsilon$** ($0.016668\text{ mm/mm}$) under 2.0G bump. Since the elastic yield strain of 55Cr3 is $\varepsilon_y = 1,100 / 206,000 = 5,340\text{ }\mu\varepsilon$, unreinforced single-leaf operation incurs localized plastic strain demand.
+
+4. **Equivalent Stress ($\sigma_{\text{vm}}$ - Von Mises Criterion):**
+   $$\sigma_{\text{vm}} = \sqrt{\frac{1}{2} \left[ (\sigma_1 - \sigma_2)^2 + (\sigma_2 - \sigma_3)^2 + (\sigma_3 - \sigma_1)^2 \right]}$$
+   The standard octahedral distortion energy criterion for ductile automotive spring steels. Peak stress occurs at the outer boundary of the central axle clamping zone: **$1,716.78\text{ MPa}$** (Static) and **$3,433.56\text{ MPa}$** (2.0G Bump).
+
+5. **Maximum Principal Stress ($\sigma_1$):**
+   $$\sigma_1 = \max \left( \text{eigenvalues}(\boldsymbol{\sigma}) \right)$$
+   Represents peak tensile normal stress on the convex tension surface (underside) of the deflected spring. In bending-dominated structures, $\sigma_1 = \sigma_{\text{axial}} + \sigma_{\text{bending}} = \mathbf{1,716.78\text{ MPa}}$ (Static) and $\mathbf{3,433.56\text{ MPa}}$ (Bump). **Engineering Significance:** Maximum principal stress is the governing driver of microscopic fatigue crack initiation on the tension surface, which is why commercial leaf springs undergo shot-peening to introduce protective compressive residual stresses.
+
+6. **Maximum Shear Stress ($\tau_{\max}$ - Tresca Criterion):**
+   $$\tau_{\max} = \frac{\sigma_1 - \sigma_3}{2} = \frac{\sigma_1}{2} = \mathbf{858.39\text{ MPa}} \text{ (Static)} \quad \text{and} \quad \mathbf{1,716.78\text{ MPa}} \text{ (2.0G Bump)}$$
+   Governs yielding slip planes at $45^\circ$ to the longitudinal axis and inter-leaf friction sliding in multi-leaf packs. The corresponding maximum shear strain is $\gamma_{\max} = \tau_{\max} / G = \mathbf{10,750.7\text{ }\mu\varepsilon}$ (Static) and $\mathbf{21,501.4\text{ }\mu\varepsilon}$ (Bump).
+
+7. **Total Strain Energy ($U_{\text{strain}}$):**
+   $$U_{\text{strain}} = \frac{1}{2} \int_V \boldsymbol{\sigma} : \boldsymbol{\varepsilon} \, dV = \frac{1}{2} \{U\}^T [K] \{U\}$$
+   Measures the total mechanical energy absorbed and stored by the leaf spring during suspension deflection. Under static laden ride, the leaf spring stores **$690.52\text{ N}\cdot\text{m}$ ($J$)** of strain energy. Under dynamic bump impact ($2.0G$), stored strain energy quadruples to **$2,762.10\text{ N}\cdot\text{m}$ ($J$)**, demonstrating the spring's shock-absorption capacity.
+
+#### Full Multi-Load Case Comparison for the 7 ANSYS Solutions:
+
+| Solution Quantity | Units | Case 1: Static Normal | Case 2: 2.0G Bump | Case 3: Bump + Brake | Case 4: Severe Combined |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **1. Total Deformation** | $\text{mm}$ | $167.59$ | $335.19$ | $152.75$ | $313.99$ |
+| **2. Directional Deflection ($U_y$)** | $\text{mm}$ | $-167.59$ | $-335.19$ | $-152.75$ | $-313.99$ |
+| **3. Equivalent Elastic Strain** | $\mu\varepsilon$ | $8,333.9$ | $16,667.8$ | $7,767.6$ | $15,858.7$ |
+| **4. Equivalent Stress ($\sigma_{\text{vm}}$)** | $\text{MPa}$ | $1,716.78$ | $3,433.56$ | $1,600.12$ | $3,266.90$ |
+| **5. Max. Principal Stress ($\sigma_1$)** | $\text{MPa}$ | $1,716.78$ | $3,433.56$ | $1,600.12$ | $3,266.90$ |
+| **6. Max. Shear Stress ($\tau_{\max}$)** | $\text{MPa}$ | $858.39$ | $1,716.78$ | $800.06$ | $1,633.45$ |
+| **7. Total Strain Energy ($U$)** | $\text{N}\cdot\text{m}$ | $690.52$ | $2,762.10$ | $574.14$ | $2,424.75$ |
+| **Factor of Safety (FoS)** | - | **$0.64$** | **$0.32$** | **$0.69$** | **$0.34$** |
+
+---
+
 ## 5. Results and Discussions
 
 ### 5.1 Study Results
@@ -273,8 +324,8 @@ The leaf was redesigned with a parabolic taper profile:
 - Center thickness ($x = 0$): $t_{\text{center}} = 14.5\text{ mm}$
 - Eye-end thickness ($x = \pm L$): $t_{\text{eye}} = 7.5\text{ mm}$
 
-![Figure 7: Von Mises Stress Distribution Comparison: Baseline Uniform vs. Parabolic Tapered Model](model_revision_comparison.png)
-*Figure 7: Longitudinal Von Mises stress distribution comparison along the leaf spring half-span ($x = 0$ to $600\text{ mm}$) under 2.0G dynamic bump impact. The revised parabolic tapered profile ($t_{\text{center}} = 14.5\text{ mm} \rightarrow t_{\text{eye}} = 7.5\text{ mm}$) reduces peak stress by $31.5\%$ from $3,433.56\text{ MPa}$ to $2,352.28\text{ MPa}$ and decreases maximum deflection by $31.4\%$ at equivalent component mass ($6.98\text{ kg}$).*
+![Figure 8: Von Mises Stress Distribution Comparison: Baseline Uniform vs. Parabolic Tapered Model](model_revision_comparison.png)
+*Figure 8: Longitudinal Von Mises stress distribution comparison along the leaf spring half-span ($x = 0$ to $600\text{ mm}$) under 2.0G dynamic bump impact. The revised parabolic tapered profile ($t_{\text{center}} = 14.5\text{ mm} \rightarrow t_{\text{eye}} = 7.5\text{ mm}$) reduces peak stress by $31.5\%$ from $3,433.56\text{ MPa}$ to $2,352.28\text{ MPa}$ and decreases maximum deflection by $31.4\%$ at equivalent component mass ($6.98\text{ kg}$).*
 
 #### Performance Comparison: Baseline vs. Revised Model
 

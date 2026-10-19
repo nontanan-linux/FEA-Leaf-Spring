@@ -17,6 +17,7 @@ Features:
 
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.collections import LineCollection
 import os
 
 # Create output folder for figures
@@ -31,6 +32,7 @@ NU = 0.29
 RHO = 7850.0             # kg/m^3
 YIELD_STRENGTH = 1100e6  # Pa (1100 MPa)
 TENSILE_STRENGTH = 1280e6 # Pa (1280 MPa)
+G_MODULUS = E_MODULUS / (2.0 * (1.0 + NU))  # Pa (79.845 GPa Shear Modulus)
 
 def build_curved_leaf_spring_mesh(num_elements=40, span=1.200, camber=0.100, width=0.060, thickness_func=None):
     """
@@ -152,8 +154,23 @@ def solve_leaf_spring_fem(num_elements=40, F_vertical=-8240.4, F_horizontal=0.0,
     # Total strain energy: U_strain = 0.5 * {U}^T [K] {U}
     total_strain_energy = 0.5 * (U @ K_global @ U)
     
-    # Stress recovery per element
+    # ---------------------------------------------------------
+    # ANSYS Workbench Solution Recovery
+    # ---------------------------------------------------------
+    # 1. Total Deformation & 2. Directional Deformation (Y-Axis)
+    u_x_nodes_mm = U[0::3] * 1000.0
+    u_y_nodes_mm = U[1::3] * 1000.0
+    u_total_nodes_mm = np.sqrt(u_x_nodes_mm**2 + u_y_nodes_mm**2)
+
     element_stresses = []
+    element_principal_1 = []
+    element_tau_max = []
+    element_elastic_strain = []
+    element_shear_strain = []
+    element_strain_energy = []
+    element_u_total = []
+    element_u_y = []
+
     for idx, (n1, n2) in enumerate(elements):
         prop = element_props[idx]
         L_el = prop["length"]
@@ -184,12 +201,47 @@ def solve_leaf_spring_fem(num_elements=40, F_vertical=-8240.4, F_horizontal=0.0,
         M2 = (E_MODULUS * I_el / L_el**2) * (6.0*(u_elem_local[1] - u_elem_local[4]) + L_el*(2.0*u_elem_local[2] + 4.0*u_elem_local[5]))
         M_max = max(abs(M1), abs(M2))
         
+        # 4. Equivalent Stress (Von Mises)
         sigma_axial = N_axial / A_el
         sigma_bending = M_max / Z_el
         sigma_von_mises = abs(sigma_axial) + sigma_bending
+        
+        # 5. Maximum Principal Stress (Peak tensile stress on convex surface)
+        sigma_principal_1 = max(0.0, sigma_axial + sigma_bending, -sigma_axial + sigma_bending)
+        
+        # 6. Maximum Shear Stress (Tresca: tau_max = (sigma_1 - sigma_3)/2)
+        tau_max = sigma_principal_1 / 2.0
+        
+        # 3. Equivalent Elastic Strain (epsilon_eq = sigma_vm / E)
+        strain_eq = sigma_von_mises / E_MODULUS
+        
+        # Maximum Shear Strain (gamma_max = tau_max / G)
+        shear_strain = tau_max / G_MODULUS
+
+        # 7. Element Strain Energy (N*m / J)
+        e_strain_energy = (L_el / (6.0 * E_MODULUS * I_el)) * (M1**2 + M1 * M2 + M2**2) + (N_axial**2 * L_el) / (2.0 * E_MODULUS * A_el)
+
+        # Deformations at element midpoint
+        elem_u_tot = 0.5 * (u_total_nodes_mm[n1] + u_total_nodes_mm[n2])
+        elem_u_vert = 0.5 * (u_y_nodes_mm[n1] + u_y_nodes_mm[n2])
+        
         element_stresses.append(sigma_von_mises)
+        element_principal_1.append(sigma_principal_1)
+        element_tau_max.append(tau_max)
+        element_elastic_strain.append(strain_eq)
+        element_shear_strain.append(shear_strain)
+        element_strain_energy.append(e_strain_energy)
+        element_u_total.append(elem_u_tot)
+        element_u_y.append(elem_u_vert)
         
     element_stresses = np.array(element_stresses)
+    element_principal_1 = np.array(element_principal_1)
+    element_tau_max = np.array(element_tau_max)
+    element_elastic_strain = np.array(element_elastic_strain)
+    element_shear_strain = np.array(element_shear_strain)
+    element_strain_energy = np.array(element_strain_energy)
+    element_u_total = np.array(element_u_total)
+    element_u_y = np.array(element_u_y)
     
     # Calculate mass of leaf spring
     total_volume = sum(p["A"] * p["length"] for p in element_props)
@@ -200,9 +252,28 @@ def solve_leaf_spring_fem(num_elements=40, F_vertical=-8240.4, F_horizontal=0.0,
         "elements": elements,
         "element_props": element_props,
         "U": U,
+        "u_x_nodes_mm": u_x_nodes_mm,
+        "u_y_nodes_mm": u_y_nodes_mm,
+        "u_total_nodes_mm": u_total_nodes_mm,
+        "element_u_total_mm": element_u_total,
+        "element_u_y_mm": element_u_y,
         "center_deflection_mm": abs(U[3 * center_node + 1]) * 1000.0,
         "max_von_mises_MPa": np.max(element_stresses) / 1e6,
         "element_stresses_MPa": element_stresses / 1e6,
+        "max_principal_stress_MPa": np.max(element_principal_1) / 1e6,
+        "element_principal_1_MPa": element_principal_1 / 1e6,
+        "max_shear_stress_MPa": np.max(element_tau_max) / 1e6,
+        "element_tau_max_MPa": element_tau_max / 1e6,
+        "max_elastic_strain": float(np.max(element_elastic_strain)),
+        "element_strain_eq": element_elastic_strain,
+        "max_microstrain": float(np.max(element_elastic_strain)) * 1e6,
+        "element_microstrain": element_elastic_strain * 1e6,
+        "max_shear_strain": float(np.max(element_shear_strain)),
+        "element_shear_strain": element_shear_strain,
+        "max_shear_microstrain": float(np.max(element_shear_strain)) * 1e6,
+        "element_shear_microstrain": element_shear_strain * 1e6,
+        "element_strain_energy_J": element_strain_energy,
+        "max_element_strain_energy_J": float(np.max(element_strain_energy)),
         "strain_energy_J": total_strain_energy,
         "total_mass_kg": total_mass,
         "FoS": YIELD_STRENGTH / np.max(element_stresses)
@@ -259,6 +330,185 @@ def run_mesh_convergence_study():
     
     return results_conv
 
+def plot_ansys_workbench_solutions(res, output_path=None):
+    """
+    Generates an executive 8-panel dashboard corresponding to the 7 standard
+    ANSYS Workbench Mechanical solution fields + Solution Summary Dashboard:
+    1. Total Deformation (mm)
+    2. Directional Deformation [Y-Axis] (mm)
+    3. Equivalent Elastic Strain (microstrain)
+    4. Equivalent Stress [Von-Mises] (MPa)
+    5. Maximum Principal Stress (MPa)
+    6. Maximum Shear Stress (MPa)
+    7. Strain Energy (N*m / J)
+    8. ANSYS Solution Summary Dashboard
+    """
+    if output_path is None:
+        output_path = os.path.join(output_dir, "ansys_workbench_solutions.png")
+
+    nodes = res["nodes"]
+    elements = res["elements"]
+    x_orig = nodes[:, 0] * 1000.0
+    y_orig = nodes[:, 1] * 1000.0
+
+    x_def = (nodes[:, 0] + res["U"][0::3]) * 1000.0
+    y_def = (nodes[:, 1] + res["U"][1::3]) * 1000.0
+
+    points = np.column_stack([x_def, y_def])
+    segs = [np.array([points[n1], points[n2]]) for (n1, n2) in elements]
+
+    fig, axes = plt.subplots(2, 4, figsize=(22, 10.5))
+    fig.patch.set_facecolor('#F8FAFC')
+
+    solution_configs = [
+        {
+            "data": res["element_u_total_mm"],
+            "title": "1. Total Deformation",
+            "unit": "mm",
+            "subtitle": "Resultant Displacement | sqrt(Ux^2 + Uy^2)",
+            "cmap": "turbo",
+            "fmt": "{:.2f}"
+        },
+        {
+            "data": res["element_u_y_mm"],
+            "title": "2. Directional Deformation [Y-Axis]",
+            "unit": "mm",
+            "subtitle": "Vertical Deflection along Gravity / Ride Axis",
+            "cmap": "turbo",
+            "fmt": "{:.2f}"
+        },
+        {
+            "data": res["element_microstrain"],
+            "title": "3. Equivalent Elastic Strain",
+            "unit": "μm/m",
+            "subtitle": f"Von Mises Strain | ε_eq = σ_vm / E (Yield: {1100e6/E_MODULUS*1e6:.0f} μm/m)",
+            "cmap": "turbo",
+            "fmt": "{:.1f}"
+        },
+        {
+            "data": res["element_stresses_MPa"],
+            "title": "4. Equivalent Stress (Von Mises)",
+            "unit": "MPa",
+            "subtitle": f"Octahedral Distortion Metric (Yield: {YIELD_STRENGTH/1e6:.0f} MPa)",
+            "cmap": "turbo",
+            "fmt": "{:.1f}"
+        },
+        {
+            "data": res["element_principal_1_MPa"],
+            "title": "5. Maximum Principal Stress (σ₁)",
+            "unit": "MPa",
+            "subtitle": "Peak Tensile Normal Stress (Fatigue Crack Initiation)",
+            "cmap": "turbo",
+            "fmt": "{:.1f}"
+        },
+        {
+            "data": res["element_tau_max_MPa"],
+            "title": "6. Maximum Shear Stress (Tresca)",
+            "unit": "MPa",
+            "subtitle": f"Tresca Metric: τ_max = σ₁/2 | Peak γ = {res['max_shear_microstrain']:.1f} μm/m",
+            "cmap": "turbo",
+            "fmt": "{:.1f}"
+        },
+        {
+            "data": res["element_strain_energy_J"],
+            "title": "7. Strain Energy Distribution",
+            "unit": "N·m (J)",
+            "subtitle": f"Elastic Energy per Element | Total: {res['strain_energy_J']:.2f} N·m",
+            "cmap": "turbo",
+            "fmt": "{:.3f}"
+        }
+    ]
+
+    # Plot the first 7 panels
+    for idx in range(7):
+        ax = axes.flat[idx]
+        sc = solution_configs[idx]
+        ax.set_facecolor('#FFFFFF')
+        data = sc["data"]
+        val_min = float(np.min(data))
+        val_max = float(np.max(data))
+
+        # Undeformed shape
+        ax.plot(x_orig, y_orig, color='#94A3B8', linestyle='--', linewidth=1.2, alpha=0.6, label='Undeformed')
+
+        # Deformed colored beam
+        lc = LineCollection(segs, cmap=sc["cmap"], linewidths=7.0)
+        lc.set_array(data)
+        lc.set_clim(val_min, val_max)
+        ax.add_collection(lc)
+
+        # Callouts for Max & Min
+        idx_max = np.argmax(data)
+        idx_min = np.argmin(data)
+        x_max = 0.5 * (x_def[elements[idx_max][0]] + x_def[elements[idx_max][1]])
+        y_max = 0.5 * (y_def[elements[idx_max][0]] + y_def[elements[idx_max][1]])
+        x_min = 0.5 * (x_def[elements[idx_min][0]] + x_def[elements[idx_min][1]])
+        y_min = 0.5 * (y_def[elements[idx_min][0]] + y_def[elements[idx_min][1]])
+
+        ax.scatter([x_max], [y_max], color='#DC2626', s=70, edgecolors='black', zorder=5, marker='^')
+        ax.scatter([x_min], [y_min], color='#2563EB', s=70, edgecolors='black', zorder=5, marker='v')
+
+        txt_info = f"Max: {sc['fmt'].format(val_max)} {sc['unit']}\nMin: {sc['fmt'].format(val_min)} {sc['unit']}"
+        ax.text(0.03, 0.92, txt_info, transform=ax.transAxes, fontsize=8.5, fontfamily='sans-serif',
+                fontweight='bold', verticalalignment='top',
+                bbox=dict(boxstyle='round,pad=0.35', facecolor='#F1F5F9', edgecolor='#CBD5E1', alpha=0.9))
+
+        ax.set_title(f"{sc['title']}\n{sc['subtitle']}", fontsize=10, fontweight='bold', pad=10)
+        ax.set_xlim(-640, 640)
+        ax.set_ylim(-210, 140)
+        ax.set_xlabel("X (mm)", fontsize=8)
+        ax.set_ylabel("Y (mm)", fontsize=8)
+        ax.grid(True, linestyle=':', alpha=0.5)
+
+        cbar = fig.colorbar(lc, ax=ax, fraction=0.032, pad=0.02)
+        cbar.set_label(sc["unit"], fontsize=8.5, fontweight='bold')
+        cbar.ax.tick_params(labelsize=8)
+
+    # Panel 8: Executive Solution Summary Dashboard
+    ax8 = axes.flat[7]
+    ax8.set_facecolor('#FFFFFF')
+    ax8.axis('off')
+
+    table_data = [
+        ["1. Total Deformation", f"{res['center_deflection_mm']:.2f} mm", "Midspan (Axle)"],
+        ["2. Directional Def. (Y)", f"-{res['center_deflection_mm']:.2f} mm", "Midspan (Axle)"],
+        ["3. Equiv. Elastic Strain", f"{res['max_microstrain']:.1f} um/m", "Clamping Zone"],
+        ["4. Equivalent Stress (VM)", f"{res['max_von_mises_MPa']:.2f} MPa", "Clamping Zone"],
+        ["5. Max Principal Stress", f"{res['max_principal_stress_MPa']:.2f} MPa", "Tension Surface"],
+        ["6. Max Shear Stress", f"{res['max_shear_stress_MPa']:.2f} MPa", "45° Shear Plane"],
+        ["7. Total Strain Energy", f"{res['strain_energy_J']:.2f} N·m", "Full Spring Span"]
+    ]
+
+    col_labels = ["ANSYS Solution Item", "Max Value", "Critical Zone"]
+    tab = ax8.table(cellText=table_data, colLabels=col_labels, loc='center', cellLoc='left',
+                    colWidths=[0.42, 0.28, 0.30])
+    tab.auto_set_font_size(False)
+    tab.set_fontsize(8.5)
+    tab.scale(1.0, 1.65)
+
+    # Style header row
+    for (row, col), cell in tab.get_celld().items():
+        if row == 0:
+            cell.set_facecolor('#1E293B')
+            cell.set_text_props(color='white', fontweight='bold')
+        else:
+            if row % 2 == 1:
+                cell.set_facecolor('#F8FAFC')
+            else:
+                cell.set_facecolor('#FFFFFF')
+            cell.set_edgecolor('#E2E8F0')
+
+    ax8.set_title("8. ANSYS Solution Summary Dashboard\nFull Metric Breakdown (Static Ride: Fv = -8,240.40 N)",
+                  fontsize=10, fontweight='bold', pad=10)
+
+    plt.suptitle("ANSYS Workbench Mechanical Standard - 7 Solution Post-Processing\n"
+                 "Automotive Semi-Elliptic Leaf Spring (Static Ride: F_v = -8,240.40 N | Material: 55Cr3 / SUP9 Spring Steel)",
+                 fontsize=13, fontweight='bold', y=0.99)
+    plt.tight_layout(rect=[0, 0.02, 1, 0.96])
+    plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    plt.close()
+    print(f"\n[SAVED] ANSYS Workbench 7-Solution figure saved to: {output_path}")
+
 def run_load_cases_analysis():
     print("\n" + "=" * 70)
     print(" 4. MULTI-LOAD CASE STRUCTURAL ANALYSIS (SOLID SPRING STEEL)")
@@ -273,7 +523,7 @@ def run_load_cases_analysis():
     
     study_results = []
     
-    for case_name, F_v, F_h in cases:
+    for idx_c, (case_name, F_v, F_h) in enumerate(cases):
         res = solve_leaf_spring_fem(num_elements=60, F_vertical=F_v, F_horizontal=F_h)
         status = "SAFE" if res["FoS"] >= 1.0 else "EXCEEDS YIELD"
         study_results.append({
@@ -283,12 +533,22 @@ def run_load_cases_analysis():
             "max_stress": res["max_von_mises_MPa"],
             "deflection": res["center_deflection_mm"],
             "FoS": res["FoS"],
-            "status": status
+            "status": status,
+            "res": res
         })
         print(f"\n[{case_name}]")
-        print(f"  Max Von Mises Stress: {res['max_von_mises_MPa']:.2f} MPa (Yield: {YIELD_STRENGTH/1e6:.0f} MPa)")
-        print(f"  Center Deflection: {res['center_deflection_mm']:.2f} mm")
-        print(f"  Factor of Safety (FoS): {res['FoS']:.2f} -> {status}")
+        print(f"  1. Total Deformation:           {res['center_deflection_mm']:8.2f} mm")
+        print(f"  2. Directional Def. (Y-Axis):  -{res['center_deflection_mm']:8.2f} mm")
+        print(f"  3. Equivalent Elastic Strain:  {res['max_microstrain']:8.1f} um/m (microstrain)")
+        print(f"  4. Equivalent Stress (Von Mises): {res['max_von_mises_MPa']:6.2f} MPa (Yield: {YIELD_STRENGTH/1e6:.0f} MPa)")
+        print(f"  5. Maximum Principal Stress (sigma_1): {res['max_principal_stress_MPa']:6.2f} MPa")
+        print(f"  6. Maximum Shear Stress (tau_max):     {res['max_shear_stress_MPa']:6.2f} MPa")
+        print(f"  7. Total Strain Energy:         {res['strain_energy_J']:8.2f} N.m")
+        print(f"  >> Factor of Safety (FoS):       {res['FoS']:8.2f} -> {status}")
+
+        if idx_c == 0:
+            # Generate ANSYS Workbench 7-solution publication figure for Case 1
+            plot_ansys_workbench_solutions(res)
 
     return study_results
 

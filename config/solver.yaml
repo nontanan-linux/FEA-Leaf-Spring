@@ -130,13 +130,70 @@ load_cases:
     horizontal_force_n: -5000.00
 
 # -------------------------------------------------------------------------------
-# 7. POST-PROCESSING & STRESS EVALUATION
+# 7. POST-PROCESSING & SOLUTION FIELD DEFINITIONS (ANSYS WORKBENCH STANDARD)
 # -------------------------------------------------------------------------------
 post_processing:
   stress_criteria: "Von Mises Equivalent Stress (sigma_vm)"
   deflection_tracking_node: "Axle center node (x = 0 mm, maximum downward vertical displacement)"
   factor_of_safety_formula: "sigma_yield / sigma_vm_max"
   results_output_dir: "../results"
+
+  # Standard ANSYS Mechanical Solution Results:
+  solution_outputs:
+    1_total_deformation:
+      name: "Total Deformation"
+      symbol: "U_total"
+      formula: "sqrt(u_x^2 + u_y^2 + u_z^2)"
+      units: "mm"
+      description: "Resultant displacement magnitude across all translational degrees of freedom"
+
+    2_directional_deformation_y:
+      name: "Directional Deformation (Y-Axis)"
+      symbol: "U_y"
+      formula: "u_y"
+      units: "mm"
+      orientation: "Global Y-Axis (Vertical Ride / Bump Axis)"
+      description: "Component vertical displacement tracking leaf spring deflection under axle load"
+
+    3_equivalent_elastic_strain:
+      name: "Equivalent Elastic Strain"
+      symbol: "epsilon_eq"
+      formula: "sigma_vm / E"
+      units: "mm/mm (microstrain)"
+      description: "Von Mises equivalent elastic strain measure representing distortion energy"
+
+    4_equivalent_stress:
+      name: "Equivalent Stress (Von Mises)"
+      symbol: "sigma_vm"
+      formula: "sqrt(1/2 * [(sigma_1 - sigma_2)^2 + (sigma_2 - sigma_3)^2 + (sigma_3 - sigma_1)^2])"
+      units: "MPa (N/mm^2)"
+      description: "Octahedral shear stress yield criterion for ductile spring steel 55Cr3"
+
+    5_maximum_principal_stress:
+      name: "Maximum Principal Stress"
+      symbol: "sigma_1"
+      formula: "max(eigenvalues(sigma))"
+      units: "MPa (N/mm^2)"
+      description: "Peak tensile normal stress governing tensile fatigue crack initiation on convex leaf surface"
+
+    6_maximum_shear_stress_and_strain:
+      stress_name: "Maximum Shear Stress (Tresca)"
+      stress_symbol: "tau_max"
+      stress_formula: "(sigma_1 - sigma_3) / 2"
+      stress_units: "MPa (N/mm^2)"
+      strain_name: "Maximum Shear Strain"
+      strain_symbol: "gamma_max"
+      strain_formula: "tau_max / G"
+      strain_units: "mm/mm (microstrain)"
+      description: "Tresca maximum shear criterion governing inter-leaf friction and slip failure"
+
+    7_strain_energy:
+      name: "Strain Energy"
+      symbol: "U_strain"
+      formula: "1/2 * integral(sigma : epsilon dV) = 1/2 * {u}^T [K] {u}"
+      units: "N*m (Joule)"
+      description: "Internal elastic deformation energy stored in the leaf spring structure"
+
   output_figures:
     fbd_diagram: "vehicle_dynamics_fbd.png"
     fixed_support_model: "fixed_support_model.png"
@@ -144,3 +201,4 @@ post_processing:
     mesh_3d_model: "mesh_model_3d.png"
     convergence_curve: "mesh_convergence_study.png"
     revision_comparison: "model_revision_comparison.png"
+    ansys_workbench_solutions: "ansys_workbench_solutions.png"

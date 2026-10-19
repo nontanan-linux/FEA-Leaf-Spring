@@ -35,7 +35,8 @@ D:\M.eng\FiniteElementMethode\FEA_Leaf_Spring\
 │   ├── mesh_model_cad_view.png # Standalone 3D CAD mesh view in exact sample perspective
 │   ├── mesh_model_cad_closeup.png # 3x zoom close-up detail of front eye mesh density
 │   ├── mesh_convergence_study.png # Figure 6: Generated convergence curve chart
-│   └── model_revision_comparison.png # Figure 7: Baseline vs. revised comparison chart
+│   ├── ansys_workbench_solutions.png # Figure 7: Standard 7-Solution ANSYS Workbench Mechanical Dashboard
+│   └── model_revision_comparison.png # Figure 8: Baseline vs. revised comparison chart
 └── scripts\                    # Python source code for analysis & FEA
     ├── generate_mesh.py            # CAD to Mesh generator (.stp/.step/.stl to .inp/.stl) & importer
     ├── leaf_spring_analytical.py   # Vehicle dynamics load & analytical beam mechanics calculation
@@ -58,13 +59,21 @@ python scripts\leaf_spring_analytical.py
 ```
 
 ### 2. Python Finite Element Method (FEM) Solver & Plotter
-Solves the curved leaf spring frame/beam FEM, evaluates the 4 operational load cases, performs strain energy convergence, and generates the comparison charts:
+Solves the curved leaf spring frame/beam FEM, evaluates the 4 operational load cases, performs strain energy convergence, calculates the **7 standard ANSYS Workbench Mechanical solution fields**, and generates the publication comparison charts:
 ```powershell
 python scripts\leaf_spring_fem.py
 ```
 *Outputs generated into `results/`:*
 - `results/mesh_convergence_study.png` (Strain energy convergence graph - Figure 6)
-- `results/model_revision_comparison.png` (Stress distribution comparison between Baseline and Parabolic Tapered design - Figure 7)
+- `results/ansys_workbench_solutions.png` (ANSYS Workbench standard 7-solution dashboard - Figure 7)
+  1. *Total Deformation* ($U_{\text{total}}$)
+  2. *Directional Deformation [Y-Axis]* ($U_y$)
+  3. *Equivalent Elastic Strain* ($\varepsilon_{\text{eq}}$)
+  4. *Equivalent Stress (Von Mises)* ($\sigma_{\text{vm}}$)
+  5. *Maximum Principal Stress* ($\sigma_1$)
+  6. *Maximum Shear Stress* ($\tau_{\max}$)
+  7. *Strain Energy Distribution* ($U_{\text{strain}}$)
+- `results/model_revision_comparison.png` (Stress distribution comparison between Baseline and Parabolic Tapered design - Figure 8)
 
 ### 3. Generate Vehicle Dynamics Diagram & CAD Visualizations
 ```powershell
