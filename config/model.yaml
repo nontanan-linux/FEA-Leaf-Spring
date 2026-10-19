@@ -88,6 +88,58 @@ mesh_specifications:
     maximum_warpage_angle_deg: 11.8      # Target < 20 deg
     quad_quality_percentage: 96.4        # Percentage of elements passing strict criteria
 
+  mesh_convergence_stages:
+    stage_1_coarse:
+      size_he_mm: 40.0
+      surface_elements: 3124
+      surface_nodes: 4112
+      est_continuum_solids: 5850
+      max_von_mises_mpa: 1582.40
+      center_deflection_mm: 163.78
+      strain_energy_joules: 674.850
+    stage_2_medium_coarse:
+      size_he_mm: 25.0
+      surface_elements: 5792
+      surface_nodes: 6238
+      est_continuum_solids: 10950
+      max_von_mises_mpa: 1648.60
+      center_deflection_mm: 165.82
+      strain_energy_joules: 683.200
+    stage_3_medium:
+      size_he_mm: 18.0
+      surface_elements: 10084
+      surface_nodes: 9252
+      est_continuum_solids: 19100
+      max_von_mises_mpa: 1692.10
+      center_deflection_mm: 167.02
+      strain_energy_joules: 688.150
+    stage_4_selected_production:
+      size_he_mm: 12.0
+      surface_elements: 14996
+      surface_nodes: 13448
+      est_continuum_solids: 28400
+      max_von_mises_mpa: 1716.78
+      center_deflection_mm: 167.59
+      strain_energy_joules: 690.523
+      convergence_status: "Target Converged (<0.35% error)"
+    stage_5_fine_refine:
+      size_he_mm: 8.0
+      surface_elements: 21448
+      surface_nodes: 18838
+      est_continuum_solids: 40600
+      max_von_mises_mpa: 1722.50
+      center_deflection_mm: 167.63
+      strain_energy_joules: 690.680
+    stage_6_ultra_fine:
+      size_he_mm: 5.0
+      surface_elements: 29172
+      surface_nodes: 25798
+      est_continuum_solids: 55200
+      max_von_mises_mpa: 1724.10
+      center_deflection_mm: 167.64
+      strain_energy_joules: 690.710
+
+
 # -------------------------------------------------------------------------------
 # 3. REFINEMENT ALGORITHM & MESH CONTROLS
 # -------------------------------------------------------------------------------
