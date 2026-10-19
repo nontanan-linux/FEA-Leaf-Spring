@@ -130,7 +130,7 @@ load_cases:
     horizontal_force_n: -5000.00
 
 # -------------------------------------------------------------------------------
-# 7. POST-PROCESSING & SOLUTION FIELD DEFINITIONS (ANSYS WORKBENCH STANDARD)
+# 7. POST-PROCESSING & SOLUTION FIELD DEFINITIONS (FINITE ELEMENT STANDARD)
 # -------------------------------------------------------------------------------
 post_processing:
   stress_criteria: "Von Mises Equivalent Stress (sigma_vm)"
@@ -138,7 +138,7 @@ post_processing:
   factor_of_safety_formula: "sigma_yield / sigma_vm_max"
   results_output_dir: "../results"
 
-  # Standard ANSYS Mechanical Solution Results:
+  # Standard Finite Element Structural Solution Results:
   solution_outputs:
     1_total_deformation:
       name: "Total Deformation"
@@ -200,5 +200,5 @@ post_processing:
     mesh_boundary_conditions: "mesh_boundary_conditions.png"
     mesh_3d_model: "mesh_model_3d.png"
     convergence_curve: "mesh_convergence_study.png"
+    leaf_spring_solutions_3d: "leaf_spring_solutions_3d.png"
     revision_comparison: "model_revision_comparison.png"
-    ansys_workbench_solutions: "ansys_workbench_solutions.png"

@@ -35,12 +35,20 @@ D:\M.eng\FiniteElementMethode\FEA_Leaf_Spring\
 │   ├── mesh_model_cad_view.png # Standalone 3D CAD mesh view in exact sample perspective
 │   ├── mesh_model_cad_closeup.png # 3x zoom close-up detail of front eye mesh density
 │   ├── mesh_convergence_study.png # Figure 6: Generated convergence curve chart
-│   ├── ansys_workbench_solutions.png # Figure 7: Standard 7-Solution ANSYS Workbench Mechanical Dashboard
+│   ├── leaf_spring_solutions_3d.png # Figure 7: Complete 3D Finite Element Solution Results (7 Field Quantities)
+│   ├── solution_1_total_deformation.png # 3D Total Deformation (U_total)
+│   ├── solution_2_directional_deformation_y.png # 3D Directional Deformation (U_y)
+│   ├── solution_3_equivalent_strain.png # 3D Equivalent Elastic Strain (eps_eq)
+│   ├── solution_4_equivalent_stress.png # 3D Equivalent Stress (Von Mises)
+│   ├── solution_5_max_principal_stress.png # 3D Maximum Principal Stress (sigma_1)
+│   ├── solution_6_max_shear_stress.png # 3D Maximum Shear Stress (tau_max)
+│   ├── solution_7_strain_energy.png # 3D Strain Energy Distribution (U_strain)
 │   └── model_revision_comparison.png # Figure 8: Baseline vs. revised comparison chart
 └── scripts\                    # Python source code for analysis & FEA
     ├── generate_mesh.py            # CAD to Mesh generator (.stp/.step/.stl to .inp/.stl) & importer
     ├── leaf_spring_analytical.py   # Vehicle dynamics load & analytical beam mechanics calculation
     ├── leaf_spring_fem.py          # Complete Python Finite Element solver & convergence plotter
+    ├── plot_fea_solutions_3d.py    # 🎯 3D Open3D FEA visualizer for all 7 primary solution fields
     ├── plot_vehicle_dynamics.py    # Vehicle dynamics Free Body Diagram generator (Figure 1)
     ├── plot_cad_fixed_support.py   # Direct CAD 3D renderer (Open3D) & Fixed Support hole highlighter
     ├── plot_cad_mesh.py            # Direct CAD 3D FEA mesh renderer with Rivara bisection refinement
@@ -59,23 +67,31 @@ python scripts\leaf_spring_analytical.py
 ```
 
 ### 2. Python Finite Element Method (FEM) Solver & Plotter
-Solves the curved leaf spring frame/beam FEM, evaluates the 4 operational load cases, performs strain energy convergence, calculates the **7 standard ANSYS Workbench Mechanical solution fields**, and generates the publication comparison charts:
+Solves the curved leaf spring frame/beam FEM, evaluates the 4 operational load cases, performs strain energy convergence, and generates the comparison charts:
 ```powershell
 python scripts\leaf_spring_fem.py
 ```
 *Outputs generated into `results/`:*
 - `results/mesh_convergence_study.png` (Strain energy convergence graph - Figure 6)
-- `results/ansys_workbench_solutions.png` (ANSYS Workbench standard 7-solution dashboard - Figure 7)
-  1. *Total Deformation* ($U_{\text{total}}$)
-  2. *Directional Deformation [Y-Axis]* ($U_y$)
-  3. *Equivalent Elastic Strain* ($\varepsilon_{\text{eq}}$)
-  4. *Equivalent Stress (Von Mises)* ($\sigma_{\text{vm}}$)
-  5. *Maximum Principal Stress* ($\sigma_1$)
-  6. *Maximum Shear Stress* ($\tau_{\max}$)
-  7. *Strain Energy Distribution* ($U_{\text{strain}}$)
 - `results/model_revision_comparison.png` (Stress distribution comparison between Baseline and Parabolic Tapered design - Figure 8)
 
-### 3. Generate Vehicle Dynamics Diagram & CAD Visualizations
+### 3. Generate 3D Finite Element Solution Visualizations (`plot_fea_solutions_3d.py`)
+Renders authentic 3D FEA solution contour fields directly on the CAD solid model (`resource/Leaf Spring.stl`) across all 7 solution quantities:
+```powershell
+python scripts\plot_fea_solutions_3d.py
+```
+*Outputs generated into `results/`:*
+- `results/leaf_spring_solutions_3d.png` (Executive 8-Panel 3D FEA Solutions Dashboard - Figure 7)
+  1. *Total Deformation* ($U_{\text{total}}$, mm)
+  2. *Directional Deformation [Y-Axis]* ($U_y$, mm)
+  3. *Equivalent Elastic Strain* ($\varepsilon_{\text{eq}}$, $\mu\varepsilon$)
+  4. *Equivalent Stress (Von Mises)* ($\sigma_{\text{vm}}$, MPa)
+  5. *Maximum Principal Stress* ($\sigma_1$, MPa)
+  6. *Maximum Shear Stress* ($\tau_{\max}$, MPa)
+  7. *Strain Energy Distribution* ($U_{\text{strain}}$, J)
+- Standalone 3D contour images: `solution_1_total_deformation.png` to `solution_7_strain_energy.png`
+
+### 4. Generate Vehicle Dynamics Diagram & CAD Mesh Visualizations
 ```powershell
 python scripts\plot_vehicle_dynamics.py
 python scripts\plot_cad_fixed_support.py

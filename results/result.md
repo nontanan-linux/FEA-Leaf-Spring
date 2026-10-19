@@ -39,7 +39,8 @@
 * **Figure 4:** Finite Element Restraints and Boundary Loading Schematic (Section 3.5.3)
 * **Figure 5:** 3D Finite Element Mesh Model and Rolled Eye Quadratic Discretization (Section 3.6)
 * **Figure 6:** Finite Element Mesh Convergence Study (Strain Energy vs. Discretization Density) (Section 4.5)
-* **Figure 7:** Von Mises Stress Distribution Comparison: Baseline Uniform vs. Parabolic Tapered Model (Section 5.2)
+* **Figure 7:** 3D Finite Element Solution Results: 7 Primary Structural Response Fields (Section 5.1)
+* **Figure 8:** Von Mises Stress Distribution Comparison: Baseline Uniform vs. Parabolic Tapered Model (Section 5.2)
 
 ---
 
@@ -244,29 +245,27 @@ Mesh convergence was evaluated across 5 mesh refinement stages under static load
 
 ---
 
-### 4.6 ANSYS Workbench Mechanical 7-Solution Comprehensive Evaluation
-To match standard automotive suspension engineering reporting practiced in ANSYS Workbench Mechanical simulations, all 7 primary solution fields were evaluated under the static design ride condition ($F_v = -8,240.40\text{ N}$) and dynamic bump ($F_v = -16,480.80\text{ N}$):
+## 5. Results and Discussions
 
-![Figure 7: ANSYS Workbench Mechanical Standard 7-Solution Post-Processing Dashboard](ansys_workbench_solutions.png)
-*Figure 7: ANSYS Workbench Mechanical 7-solution post-processing dashboard for the automotive semi-elliptic leaf spring under normal static laden load ($F_v = -8,240.40\text{ N}$). Illustrates (1) Total Deformation, (2) Directional Deformation in Y-axis, (3) Equivalent Elastic Strain, (4) Equivalent Von Mises Stress, (5) Maximum Principal Stress, (6) Maximum Shear Stress, (7) Strain Energy distribution, and (8) Executive Solution Summary Dashboard with zero external watermarks.*
+### 5.1 Study Results
 
-#### Breakdown of the 7 ANSYS Solution Quantities:
+The structural performance of the automotive semi-elliptic leaf spring was evaluated across the critical vehicle operating conditions. Finite element post-processing was conducted to evaluate the complete set of **7 fundamental structural field solution quantities**:
 
 1. **Total Deformation ($U_{\text{total}}$):**
    $$U_{\text{total}} = \sqrt{u_x^2 + u_y^2 + u_z^2}$$
-   Measures the total resultant vector displacement. Under normal static load, maximum total deflection is **$167.59\text{ mm}$** occurring at the axle center seat ($x = 0$), while the front fixed eye remains rigidly constrained ($0.00\text{ mm}$) and the rear eye displaces longitudinally by $23.40\text{ mm}$ to accommodate flattening. Under 2.0G bump impact, total deformation increases linearly to **$335.19\text{ mm}$**.
+   Total resultant vector displacement across all translational degrees of freedom. Under nominal static laden ride ($F_v = -8,240.40\text{ N}$), peak total deflection reaches **$167.59\text{ mm}$** at the axle center seat ($x = 0\text{ mm}$), while the front eye remains rigidly pinned ($0.00\text{ mm}$) and the rear shackle displaces longitudinally by $23.40\text{ mm}$. Under extreme 2.0G bump impact, total displacement reaches **$335.19\text{ mm}$**.
 
 2. **Directional Deformation [Y-Axis] ($U_y$):**
    $$U_y = u_y(x)$$
-   Tracks downward vertical deflection along the vehicle suspension ride and jounce axis. Peak vertical sag reaches **$-167.59\text{ mm}$** (static) and **$-335.19\text{ mm}$** (2.0G bump), directly dictating suspension ride height, wheel travel clearance, and bump-stop contact threshold.
+   Vertical deflection along the gravity and suspension ride axis. Maximum downward sag reaches **$-167.59\text{ mm}$** (static laden) and **$-335.19\text{ mm}$** (2.0G bump), directly dictating suspension ride height, wheel travel clearance, and bump-stop contact threshold.
 
 3. **Equivalent Elastic Strain ($\varepsilon_{\text{eq}}$):**
    $$\varepsilon_{\text{eq}} = \frac{1}{1+\nu} \sqrt{\frac{1}{2}\left[(\varepsilon_1 - \varepsilon_2)^2 + (\varepsilon_2 - \varepsilon_3)^2 + (\varepsilon_3 - \varepsilon_1)^2\right]} \approx \frac{\sigma_{\text{vm}}}{E}$$
-   Evaluates distortion elastic strain in the 55Cr3 spring steel matrix ($E = 206,000\text{ MPa}$). Peak equivalent strain reaches **$8,333.9\text{ }\mu\varepsilon$** ($0.008334\text{ mm/mm}$) under static load and **$16,667.8\text{ }\mu\varepsilon$** ($0.016668\text{ mm/mm}$) under 2.0G bump. Since the elastic yield strain of 55Cr3 is $\varepsilon_y = 1,100 / 206,000 = 5,340\text{ }\mu\varepsilon$, unreinforced single-leaf operation incurs localized plastic strain demand.
+   Evaluates distortion elastic strain in the 55Cr3 spring steel matrix ($E = 206,000\text{ MPa}$). Peak equivalent elastic strain reaches **$8,333.9\text{ }\mu\varepsilon$** ($0.008334\text{ mm/mm}$) under static load and **$16,667.8\text{ }\mu\varepsilon$** ($0.016668\text{ mm/mm}$) under 2.0G bump. Since the elastic yield strain of 55Cr3 is $\varepsilon_y = 1,100 / 206,000 = 5,340\text{ }\mu\varepsilon$, unreinforced single-leaf operation incurs localized plastic strain demand.
 
 4. **Equivalent Stress ($\sigma_{\text{vm}}$ - Von Mises Criterion):**
    $$\sigma_{\text{vm}} = \sqrt{\frac{1}{2} \left[ (\sigma_1 - \sigma_2)^2 + (\sigma_2 - \sigma_3)^2 + (\sigma_3 - \sigma_1)^2 \right]}$$
-   The standard octahedral distortion energy criterion for ductile automotive spring steels. Peak stress occurs at the outer boundary of the central axle clamping zone: **$1,716.78\text{ MPa}$** (Static) and **$3,433.56\text{ MPa}$** (2.0G Bump).
+   Octahedral shear stress distortion energy yield criterion. Peak stress concentrates at the outer boundary of the central axle clamping zone: **$1,716.78\text{ MPa}$** (Static) and **$3,433.56\text{ MPa}$** (2.0G Bump).
 
 5. **Maximum Principal Stress ($\sigma_1$):**
    $$\sigma_1 = \max \left( \text{eigenvalues}(\boldsymbol{\sigma}) \right)$$
@@ -280,31 +279,22 @@ To match standard automotive suspension engineering reporting practiced in ANSYS
    $$U_{\text{strain}} = \frac{1}{2} \int_V \boldsymbol{\sigma} : \boldsymbol{\varepsilon} \, dV = \frac{1}{2} \{U\}^T [K] \{U\}$$
    Measures the total mechanical energy absorbed and stored by the leaf spring during suspension deflection. Under static laden ride, the leaf spring stores **$690.52\text{ N}\cdot\text{m}$ ($J$)** of strain energy. Under dynamic bump impact ($2.0G$), stored strain energy quadruples to **$2,762.10\text{ N}\cdot\text{m}$ ($J$)**, demonstrating the spring's shock-absorption capacity.
 
-#### Full Multi-Load Case Comparison for the 7 ANSYS Solutions:
+![Figure 7: 3D Finite Element Solution Results: 7 Primary Structural Response Fields](leaf_spring_solutions_3d.png)
+*Figure 7: Complete 3D finite element solution results for the automotive leaf spring assembly under static normal laden load ($F_v = -8,240.40\text{ N}$). Illustrated across all 7 field solutions: (1) Total Deformation, (2) Directional Deformation in Y-axis, (3) Equivalent Elastic Strain, (4) Equivalent Von Mises Stress, (5) Maximum Principal Stress, (6) Maximum Shear Stress, (7) Strain Energy distribution, and (8) Executive numerical summary table.*
+
+#### Comprehensive Multi-Load Case Solution Matrix:
 
 | Solution Quantity | Units | Case 1: Static Normal | Case 2: 2.0G Bump | Case 3: Bump + Brake | Case 4: Severe Combined |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| **1. Total Deformation** | $\text{mm}$ | $167.59$ | $335.19$ | $152.75$ | $313.99$ |
+| **1. Total Deformation ($U_{\text{total}}$)** | $\text{mm}$ | $167.59$ | $335.19$ | $152.75$ | $313.99$ |
 | **2. Directional Deflection ($U_y$)** | $\text{mm}$ | $-167.59$ | $-335.19$ | $-152.75$ | $-313.99$ |
-| **3. Equivalent Elastic Strain** | $\mu\varepsilon$ | $8,333.9$ | $16,667.8$ | $7,767.6$ | $15,858.7$ |
+| **3. Equivalent Elastic Strain ($\varepsilon_{\text{eq}}$)** | $\mu\varepsilon$ | $8,333.9$ | $16,667.8$ | $7,767.6$ | $15,858.7$ |
 | **4. Equivalent Stress ($\sigma_{\text{vm}}$)** | $\text{MPa}$ | $1,716.78$ | $3,433.56$ | $1,600.12$ | $3,266.90$ |
 | **5. Max. Principal Stress ($\sigma_1$)** | $\text{MPa}$ | $1,716.78$ | $3,433.56$ | $1,600.12$ | $3,266.90$ |
 | **6. Max. Shear Stress ($\tau_{\max}$)** | $\text{MPa}$ | $858.39$ | $1,716.78$ | $800.06$ | $1,633.45$ |
-| **7. Total Strain Energy ($U$)** | $\text{N}\cdot\text{m}$ | $690.52$ | $2,762.10$ | $574.14$ | $2,424.75$ |
+| **7. Total Strain Energy ($U_{\text{strain}}$)** | $\text{N}\cdot\text{m}$ | $690.52$ | $2,762.10$ | $574.14$ | $2,424.75$ |
 | **Factor of Safety (FoS)** | - | **$0.64$** | **$0.32$** | **$0.69$** | **$0.34$** |
-
----
-
-## 5. Results and Discussions
-
-### 5.1 Study Results
-
-| Analysis Load Case | Applied Forces | Max. Stress ($\text{N/mm}^2$) | Yield Strength ($\text{N/mm}^2$) | Factor of Safety (FoS) | Status |
-| :--- | :--- | :---: | :---: | :---: | :---: |
-| **Case 1: Normal Static Load** | $F_v = -8,240.40\text{ N}$ | $1,716.78$ | $1,100.0$ | **$0.64$** | Exceeds Yield (Single Leaf) |
-| **Case 2: 2.0G Dynamic Bump** | $F_v = -16,480.80\text{ N}$ | $3,433.56$ | $1,100.0$ | **$0.32$** | Exceeds Yield (Single Leaf) |
-| **Case 3: Bump + Braking** | $F_v = -8,240.4\text{ N}, F_x = -3,500\text{ N}$ | $1,600.12$ | $1,100.0$ | **$0.69$** | Exceeds Yield (Single Leaf) |
-| **Case 4: Severe Bump + Braking** | $F_v = -16,480.8\text{ N}, F_x = -5,000\text{ N}$ | $3,266.90$ | $1,100.0$ | **$0.34$** | Exceeds Yield (Single Leaf) |
+| **Yield Status** | - | Exceeds Yield | Exceeds Yield | Exceeds Yield | Exceeds Yield |
 
 *Yield strength of the material (55Cr3 / SUP9 Spring Steel) is $1,100.0\text{ N/mm}^2$ ($1.10 \times 10^9\text{ N/m}^2$).*
 

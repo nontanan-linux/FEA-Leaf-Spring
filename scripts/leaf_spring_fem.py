@@ -498,16 +498,16 @@ def plot_ansys_workbench_solutions(res, output_path=None):
                 cell.set_facecolor('#FFFFFF')
             cell.set_edgecolor('#E2E8F0')
 
-    ax8.set_title("8. ANSYS Solution Summary Dashboard\nFull Metric Breakdown (Static Ride: Fv = -8,240.40 N)",
+    ax8.set_title("8. FEA Solution Summary Dashboard\nFull Metric Breakdown (Static Ride: Fv = -8,240.40 N)",
                   fontsize=10, fontweight='bold', pad=10)
 
-    plt.suptitle("ANSYS Workbench Mechanical Standard - 7 Solution Post-Processing\n"
+    plt.suptitle("Finite Element Method - 7 Structural Solution Field Distribution\n"
                  "Automotive Semi-Elliptic Leaf Spring (Static Ride: F_v = -8,240.40 N | Material: 55Cr3 / SUP9 Spring Steel)",
                  fontsize=13, fontweight='bold', y=0.99)
     plt.tight_layout(rect=[0, 0.02, 1, 0.96])
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
     plt.close()
-    print(f"\n[SAVED] ANSYS Workbench 7-Solution figure saved to: {output_path}")
+    print(f"\n[SAVED] 7-Solution beam field figure saved to: {output_path}")
 
 def run_load_cases_analysis():
     print("\n" + "=" * 70)
