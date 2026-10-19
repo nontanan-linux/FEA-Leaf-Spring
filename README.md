@@ -35,6 +35,7 @@ D:\M.eng\FiniteElementMethode\FEA_Leaf_Spring\
 │   ├── mesh_convergence_study.png # Figure 6: Generated convergence curve chart
 │   └── model_revision_comparison.png # Figure 7: Baseline vs. revised comparison chart
 └── scripts\                    # Python source code for analysis & FEA
+    ├── generate_mesh.py            # CAD to Mesh generator (.stp/.step/.stl to .inp/.stl) & importer
     ├── leaf_spring_analytical.py   # Vehicle dynamics load & analytical beam mechanics calculation
     ├── leaf_spring_fem.py          # Complete Python Finite Element solver & convergence plotter
     ├── plot_vehicle_dynamics.py    # Vehicle dynamics Free Body Diagram generator (Figure 1)
@@ -73,6 +74,26 @@ python scripts\plot_cad_mesh.py
 - `results/vehicle_dynamics_fbd.png` (Figure 1)
 - `results/fixed_support_model.png` (Figure 3)
 - `results/mesh_model_3d.png` (Figure 5)
+
+### 4. CAD to Mesh Preprocessing Pipeline (`generate_mesh.py`)
+Converts 3D CAD geometry (`.stp`/`.step`) directly to finite element meshes (`.inp`/`.stl`) or imports and refines existing meshes:
+```powershell
+# Convert 3D CAD STEP solid directly to CalculiX / Abaqus FEA mesh (.inp)
+python scripts\generate_mesh.py --input "resource\Leaf Spring.stp" --output "results\leaf_spring_from_cad.inp" --size 15.0
+
+# Load, inspect, and refine existing STL mesh to CalculiX .inp
+python scripts\generate_mesh.py --input "resource\Leaf Spring.stl" --output "results\leaf_spring_from_stl.inp" --size 12.0
+```
+
+In any Python FEA solver script, import the decoupled pipeline with one line:
+```python
+from generate_mesh import load_or_generate_mesh
+
+# Intelligently loads pre-existing mesh if present, or discretizes CAD if only CAD exists:
+mesh_data = load_or_generate_mesh()
+nodes = mesh_data["vertices"]      # (N, 3) coordinate array
+elements = mesh_data["triangles"]  # (M, 3) element connectivity array
+```
 
 ---
 
