@@ -342,7 +342,7 @@ def run_mesh_convergence_study():
     # Highlight Selected Target Mesh
     ax2.scatter([14996], [1716.78], color='#d97706', s=160, zorder=5, edgecolor='#78350f', lw=2)
     ax2.annotate('Peak Stress Plateau\n$\\sigma_{\\text{vm}} = 1,716.78\\text{ MPa}$\n($\\Delta < 0.35\\%$ vs Ultra-Fine)',
-                 xy=(14996, 1716.78), xytext=(9500, 1610.0),
+                 xy=(14996, 1716.78), xytext=(12500, 1400.0),
                  arrowprops=dict(arrowstyle="->", color='#b45309', lw=1.8),
                  fontsize=9.5, fontweight='bold', color='#78350f',
                  bbox=dict(boxstyle="round,pad=0.4", fc="#fef3c7", ec="#f59e0b", lw=1.2))
