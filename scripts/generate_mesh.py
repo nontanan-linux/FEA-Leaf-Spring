@@ -54,6 +54,60 @@ except ImportError:
 
 
 # -----------------------------------------------------------------------------
+# 0. Analytical Curved Beam / Frame Domain Discretization
+# -----------------------------------------------------------------------------
+def build_curved_leaf_spring_mesh(num_elements=40, span=1.200, camber=0.100, width=0.060, thickness_func=None):
+    """
+    Discretizes a curved leaf spring domain between x = -span/2 and x = +span/2
+    with camber y(x) = camber * (1 - (2x/span)^2).
+    
+    Parameters:
+        num_elements (int): Number of finite elements along the spring span
+        span (float): Eye-to-eye total span in meters (default: 1.200 m)
+        camber (float): Initial free camber height at center in meters (default: 0.100 m)
+        width (float): Leaf spring cross-sectional width in meters (default: 0.060 m)
+        thickness_func (callable): Function returning thickness t(x) in meters at coordinate x
+        
+    Returns:
+        nodes (ndarray): (num_nodes, 2) array of nodal coordinates [x, y] in meters
+        elements (list): List of element node connectivity tuples [(n1, n2), ...]
+        element_props (list): List of geometric property dictionaries per element
+    """
+    if thickness_func is None:
+        thickness_func = lambda x: 0.012  # Uniform 12 mm baseline
+        
+    x_nodes = np.linspace(-span/2.0, span/2.0, num_elements + 1)
+    y_nodes = camber * (1.0 - (2.0 * x_nodes / span)**2)
+    nodes = np.column_stack((x_nodes, y_nodes))
+    
+    elements = []
+    element_props = []
+    
+    for i in range(num_elements):
+        n1 = i
+        n2 = i + 1
+        x_mid = 0.5 * (nodes[n1, 0] + nodes[n2, 0])
+        t_el = thickness_func(x_mid)
+        b_el = width
+        A_el = b_el * t_el
+        I_el = (b_el * (t_el**3)) / 12.0
+        Z_el = (b_el * (t_el**2)) / 6.0
+        
+        elements.append((n1, n2))
+        element_props.append({
+            "length": np.linalg.norm(nodes[n2] - nodes[n1]),
+            "A": A_el,
+            "I": I_el,
+            "Z": Z_el,
+            "thickness": t_el,
+            "width": b_el,
+            "x_mid": x_mid
+        })
+        
+    return nodes, elements, element_props
+
+
+# -----------------------------------------------------------------------------
 # 1. Mesh Quality & Diagnostic Utilities
 # -----------------------------------------------------------------------------
 def calculate_mesh_diagnostics(vertices, triangles):

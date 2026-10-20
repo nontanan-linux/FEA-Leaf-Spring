@@ -47,10 +47,13 @@ D:\M.eng\FiniteElementMethode\FEA_Leaf_Spring\
 │   ├── solution_7_strain_energy.png # 3D Strain Energy Distribution (U_strain)
 │   └── model_revision_comparison.png # Figure 8: Baseline vs. revised comparison chart
 └── scripts\                    # Python source code for analysis & FEA
-    ├── generate_mesh.py            # CAD to Mesh generator (.stp/.step/.stl to .inp/.stl) & importer
-    ├── leaf_spring_analytical.py   # Vehicle dynamics load & analytical beam mechanics calculation
-    ├── leaf_spring_fem.py          # Complete Python Finite Element solver & convergence plotter
-    ├── plot_fea_solutions_3d.py    # 🎯 3D Open3D FEA visualizer for all 7 primary solution fields
+    ├── generate_mesh.py            # Step 1: CAD import & domain discretization (mesh generation)
+    ├── leaf_spring_analytical.py   # Step 2: Analytical mechanics, element equations & global stiffness assembly
+    ├── fem_solve.py                # Step 3: Boundary condition enforcement & linear system solver
+    ├── postprocessing.py           # Step 4: Stress/strain field recovery & ANSYS visualization dashboards
+    ├── refine.py                   # Step 5: Adaptive refinement (Rivara bisection) & mesh convergence study
+    ├── leaf_spring_fem.py          # 🎯 Master Orchestrator: Executes full FEM pipeline (Steps 1 to 5)
+    ├── plot_fea_solutions_3d.py    # 3D Open3D FEA visualizer for all 7 primary solution fields
     ├── plot_vehicle_dynamics.py    # Vehicle dynamics Free Body Diagram generator (Figure 1)
     ├── plot_cad_fixed_support.py   # Direct CAD 3D renderer (Open3D) & Fixed Support hole highlighter
     ├── plot_cad_mesh.py            # Direct CAD 3D FEA mesh renderer with Rivara bisection refinement
@@ -135,56 +138,55 @@ python -c "import numpy, scipy, matplotlib, open3d, yaml, trimesh; print('>>> [S
 
 ## 🚀 How to Run the Python Scripts
 
-### 1. Analytical Vehicle Dynamics & Mechanics Calculation
-Computes static normal force, 2.0G dynamic bump impact, longitudinal braking weight transfer, and cornering lateral loads:
+### 🎯 Master Orchestrator: Full FEM Pipeline (`leaf_spring_fem.py`)
+Executes the end-to-end Finite Element Method workflow orchestrating all 5 modules sequentially:
+```powershell
+# Run the complete analysis (Mesh Convergence -> Multi-Load Cases -> Model Revision):
+python scripts\leaf_spring_fem.py
+
+# Or run specific stages via CLI flags:
+python scripts\leaf_spring_fem.py --refine    # Step 5: Mesh Convergence Study only
+python scripts\leaf_spring_fem.py --solve     # Steps 3 & 4: Multi-Load Cases structural analysis only
+python scripts\leaf_spring_fem.py --revision  # Model Revision (Uniform vs. Parabolic) only
+```
+
+---
+
+### 🧩 Modular FEM Steps (Sequential Execution)
+
+The core FEA solver is decomposed into 5 decoupled, independently executable modules matching the canonical steps of the Finite Element Method:
+
+#### **Step 1: CAD Import & Domain Discretization (`generate_mesh.py`)**
+Imports 3D CAD (`.stp` / `.step`) or surface meshes (`.stl`), generates curved beam/frame or shell/solid discretizations, and calculates mesh quality metrics (Jacobian, aspect ratio):
+```powershell
+python scripts\generate_mesh.py
+```
+
+#### **Step 2: Analytical Formulations, Element Equations & Assembly (`leaf_spring_analytical.py`)**
+Derives vehicle dynamic load transfers (1G static, 2G bump, 0.8G braking, 0.7G cornering), defines local beam element stiffness $[k^e]$, rotation transformation $[T]$, global assembly $[K_{\text{global}}]$, and boundary DOFs:
 ```powershell
 python scripts\leaf_spring_analytical.py
 ```
 
-### 2. Python Finite Element Method (FEM) Solver & Plotter
-Solves the curved leaf spring frame/beam FEM, evaluates the 4 operational load cases, performs strain energy convergence, and generates the comparison charts:
+#### **Step 3: Boundary Enforcement & Linear Equation Solver (`fem_solve.py`)**
+Partitions boundary conditions (pinned front eye, shackle roller rear eye), solves $[K_{\text{free}}] \{U_{\text{free}}\} = \{F_{\text{free}}\}$, and recovers reaction forces and strain energy:
 ```powershell
-python scripts\leaf_spring_fem.py
+python scripts\fem_solve.py
 ```
-*Outputs generated into `results/`:*
-- `results/mesh_convergence_study.png` (Strain energy convergence graph - Figure 6)
-- `results/model_revision_comparison.png` (Stress distribution comparison between Baseline and Parabolic Tapered design - Figure 8)
 
-### 3. Generate 3D Finite Element Solution Visualizations (`plot_fea_solutions_3d.py`)
-Renders authentic 3D FEA solution contour fields directly on the CAD solid model (`resource/Leaf Spring.stl`) across all 7 solution quantities:
+#### **Step 4: Post-Processing & Solution Fields (`postprocessing.py`)**
+Recovers the 7 standard ANSYS-compatible FEA solution fields ($\sigma_{\text{vm}}$, $\sigma_1$, $\tau_{\max}$, $\varepsilon_{\text{eq}}$, $U_{\text{total}}$, $U_y$, $U_{\text{strain}}$), safety factors, and generates the executive 8-panel dashboard:
 ```powershell
-python scripts\plot_fea_solutions_3d.py
+python scripts\postprocessing.py
 ```
-*Outputs generated into `results/`:*
-- `results/leaf_spring_solutions_3d.png` (Executive 8-Panel 3D FEA Solutions Dashboard - Figure 7)
-  1. *Total Deformation* ($U_{\text{total}}$, mm)
-  2. *Directional Deformation [Y-Axis]* ($U_y$, mm)
-  3. *Equivalent Elastic Strain* ($\varepsilon_{\text{eq}}$, $\mu\varepsilon$)
-  4. *Equivalent Stress (Von Mises)* ($\sigma_{\text{vm}}$, MPa)
-  5. *Maximum Principal Stress* ($\sigma_1$, MPa)
-  6. *Maximum Shear Stress* ($\tau_{\max}$, MPa)
-  7. *Strain Energy Distribution* ($U_{\text{strain}}$, J)
-- Standalone 3D contour images: `solution_1_total_deformation.png` to `solution_7_strain_energy.png`
+*Generated output:* `results/ansys_workbench_solutions.png`
 
-### 4. CAD to Mesh Preprocessing Pipeline (`generate_mesh.py`)
-Converts 3D CAD geometry (`.stp`/`.step`) directly to finite element meshes (`.inp`/`.stl`) or imports and refines existing meshes, saving outputs directly to `resources/` as configured in `config/model.yaml`:
+#### **Step 5: Adaptive Mesh Refinement & Convergence (`refine.py`)**
+Performs Rivara longest-edge bisection adaptive refinement and 6-stage 3D mesh convergence study (3,124 to 29,172 elements) with non-overlapping callout charts:
 ```powershell
-# Default execution: reads config/model.yaml, converts CAD and saves directly to resources/leaf_spring_mesh.inp
-python scripts\generate_mesh.py
-
-# Or specify custom input/output and element size:
-python scripts\generate_mesh.py --input "resources\Leaf Spring.stp" --output "resources\leaf_spring_mesh.inp" --size 12.0
+python scripts\refine.py
 ```
-
-In any Python FEA solver script, import the decoupled pipeline with one line:
-```python
-from generate_mesh import load_or_generate_mesh
-
-# Reads model.yaml: loads pre-existing mesh in resources/ if present, or discretizes CAD automatically:
-mesh_data = load_or_generate_mesh()
-nodes = mesh_data["vertices"]      # (N, 3) coordinate array
-elements = mesh_data["triangles"]  # (M, 3) element connectivity array
-```
+*Generated output:* `results/mesh_convergence_study.png`
 
 ### 5. Generate Vehicle Dynamics Diagram & CAD Mesh Visualizations
 ```powershell

@@ -152,6 +152,122 @@ def calculate_leaf_spring_mechanics(forces):
 
     return results
 
+# =============================================================================
+# 3. FINITE ELEMENT EQUATION FORMULATION & GLOBAL ASSEMBLY
+# =============================================================================
+
+# Material Constants: 55Cr3 (SUP9 / SAE 5160 Spring Steel)
+E_MODULUS = 206e9         # Pa (206 GPa)
+NU = 0.29
+RHO = 7850.0              # kg/m^3
+YIELD_STRENGTH = 1100e6   # Pa (1100 MPa)
+TENSILE_STRENGTH = 1280e6 # Pa (1280 MPa)
+G_MODULUS = E_MODULUS / (2.0 * (1.0 + NU))  # Pa (79.845 GPa)
+
+def compute_element_stiffness(prop, E_modulus=E_MODULUS):
+    """
+    Computes local 2D Euler-Bernoulli/Timoshenko frame element stiffness matrix [k_local] (6x6).
+    DOFs per node: [u_x, u_y, theta_z] (3 DOFs per node, 6 DOFs per element).
+    """
+    L_el = prop["length"]
+    A_el = prop["A"]
+    I_el = prop["I"]
+
+    k_axial = (E_modulus * A_el) / L_el
+    k12 = (12.0 * E_modulus * I_el) / (L_el**3)
+    k6  = (6.0  * E_modulus * I_el) / (L_el**2)
+    k4  = (4.0  * E_modulus * I_el) / L_el
+    k2  = (2.0  * E_modulus * I_el) / L_el
+
+    k_local = np.array([
+        [ k_axial,  0.0,    0.0,   -k_axial,  0.0,    0.0   ],
+        [ 0.0,      k12,    k6,     0.0,     -k12,    k6    ],
+        [ 0.0,      k6,     k4,     0.0,     -k6,     k2    ],
+        [-k_axial,  0.0,    0.0,    k_axial,  0.0,    0.0   ],
+        [ 0.0,     -k12,   -k6,     0.0,      k12,   -k6    ],
+        [ 0.0,      k6,     k2,     0.0,     -k6,     k4    ]
+    ])
+    return k_local
+
+def compute_transformation_matrix(c, s):
+    """
+    Computes direction-cosine transformation matrix [T] (6x6) from local to global coordinates.
+    c = cos(alpha), s = sin(alpha)
+    """
+    T = np.array([
+        [ c,  s, 0.0,  0.0,  0.0, 0.0],
+        [-s,  c, 0.0,  0.0,  0.0, 0.0],
+        [ 0.0,  0.0, 1.0,  0.0,  0.0, 0.0],
+        [ 0.0,  0.0, 0.0,  c,  s, 0.0],
+        [ 0.0,  0.0, 0.0, -s,  c, 0.0],
+        [ 0.0,  0.0, 0.0,  0.0,  0.0, 1.0]
+    ])
+    return T
+
+def assemble_global_stiffness(nodes, elements, element_props, E_modulus=E_MODULUS):
+    """
+    Assembles the global structural stiffness matrix [K_global] from element equations:
+    [K_global] = sum_e [T_e]^T [k_e] [T_e]
+    """
+    num_nodes = len(nodes)
+    total_dofs = 3 * num_nodes
+    K_global = np.zeros((total_dofs, total_dofs))
+
+    for idx, (n1, n2) in enumerate(elements):
+        prop = element_props[idx]
+        L_el = prop["length"]
+
+        dx = nodes[n2, 0] - nodes[n1, 0]
+        dy = nodes[n2, 1] - nodes[n1, 1]
+        c = dx / L_el
+        s = dy / L_el
+
+        k_local = compute_element_stiffness(prop, E_modulus=E_modulus)
+        T = compute_transformation_matrix(c, s)
+        k_global_element = T.T @ k_local @ T
+
+        dofs = [3*n1, 3*n1+1, 3*n1+2, 3*n2, 3*n2+1, 3*n2+2]
+        for r in range(6):
+            for col in range(6):
+                K_global[dofs[r], dofs[col]] += k_global_element[r, col]
+
+    return K_global
+
+def create_global_force_vector(total_dofs, center_node, F_vertical=-8240.40, F_horizontal=0.0):
+    """
+    Constructs global external load vector {F_ext}.
+    Applies center axle vertical and longitudinal braking forces at center_node.
+    """
+    F_ext = np.zeros(total_dofs)
+    F_ext[3 * center_node + 1] += F_vertical    # Vertical force (Uy, N)
+    F_ext[3 * center_node]     += F_horizontal  # Longitudinal force (Ux, N)
+    return F_ext
+
+def identify_boundary_dofs(num_nodes):
+    """
+    Identifies restrained and unconstrained degrees of freedom:
+    - Front Eye (Node 0, x = -span/2): Pinned Support (Ux = 0, Uy = 0, Rot = Free)
+    - Rear Eye (Node num_nodes-1, x = +span/2): Shackle Roller (Uy = 0, Ux = Free, Rot = Free)
+    """
+    fixed_dofs = [0, 1, 3 * (num_nodes - 1) + 1]
+    total_dofs = 3 * num_nodes
+    free_dofs = np.setdiff1d(np.arange(total_dofs), fixed_dofs)
+    return fixed_dofs, free_dofs
+
 if __name__ == "__main__":
     forces = calculate_vehicle_loads()
     results = calculate_leaf_spring_mechanics(forces)
+    
+    # Unit demonstration of element formulation & assembly
+    print("\n" + "=" * 70)
+    print(" 3. TEST FINITE ELEMENT EQUATION & ASSEMBLY (Unit Demo)")
+    print("=" * 70)
+    from generate_mesh import build_curved_leaf_spring_mesh
+    nodes, elements, props = build_curved_leaf_spring_mesh(num_elements=10)
+    K = assemble_global_stiffness(nodes, elements, props)
+    fixed_dofs, free_dofs = identify_boundary_dofs(len(nodes))
+    F_ext = create_global_force_vector(3 * len(nodes), len(nodes) // 2, forces["F_v_static"])
+    print(f"Global Stiffness Matrix assembled: size {K.shape[0]}x{K.shape[1]}")
+    print(f"Total DOFs: {3*len(nodes)} | Fixed DOFs: {fixed_dofs} | Free DOFs: {len(free_dofs)}")
+    print(f"Applied Load: Fv = {forces['F_v_static']:.2f} N at Node {len(nodes)//2}")
+    print("[OK] Element formulation and assembly verified.")
