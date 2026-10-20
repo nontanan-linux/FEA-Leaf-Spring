@@ -357,7 +357,7 @@ To verify the model in commercial / open-source graphical solvers:
 
 ---
 
-## 9. Standards & References
+## 9. References
 1. **SAE HS-788:** *Manual on Design and Application of Leaf Springs*, Society of Automotive Engineers, Warrendale, PA.
 2. **JIS G 4801 / DIN EN 10089:** *Spring Steels (SUP9 / 55Cr3 Material Specifications)*.
 3. **Cook, R. D., Malkus, D. S., Plesha, M. E., & Witt, R. J. (2001):** *Concepts and Applications of Finite Element Analysis*, 4th Edition, John Wiley & Sons.
