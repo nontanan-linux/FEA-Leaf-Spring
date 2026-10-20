@@ -22,26 +22,27 @@
    3.4 Material Properties  
    3.5 Loads and Restraints  
    3.6 Mesh Information  
-4. **Finite Element System Architecture**  
-5. **Repository Structure**  
-6. **Installation & Verification**  
-   6.1 Clone Repository  
-   6.2 Virtual Environment Setup  
-   6.3 Install Dependencies  
-   6.4 Environment Verification  
-7. **Execution Guide & Programmatic API**  
-   7.1 Master Pipeline Runner  
-   7.2 Modular Step-by-Step Programmatic Usage  
-8. **Analysis**  
-   8.1 Normal Static Vertical Load Analysis  
-   8.2 Dynamic Bump Load Analysis (2.0G Impact)  
-   8.3 Combined Bump and Braking Load Analysis  
-   8.4 Severe Dynamic Bump + Braking Load Analysis  
-   8.5 Leaf Spring Strain Energy and Mesh Convergence Study  
-9. **Results and Discussions**  
-   9.1 Study Results  
-   9.2 Discussions & Model Revision (Single Leaf vs. Multi-Leaf / Parabolic Tapered)  
-10. **References**  
+4. **Finite Element System Architecture & Repository Structure**  
+   4.1 System Pipeline Architecture & Module Responsibilities  
+   4.2 Repository Structure & File Organization  
+5. **Installation & Verification**  
+   5.1 Clone Repository  
+   5.2 Virtual Environment Setup  
+   5.3 Install Dependencies  
+   5.4 Environment Verification  
+6. **Execution Guide & Programmatic API**  
+   6.1 Master Pipeline Runner  
+   6.2 Modular Step-by-Step Programmatic Usage  
+7. **Analysis**  
+   7.1 Normal Static Vertical Load Analysis  
+   7.2 Dynamic Bump Load Analysis (2.0G Impact)  
+   7.3 Combined Bump and Braking Load Analysis  
+   7.4 Severe Dynamic Bump + Braking Load Analysis  
+   7.5 Leaf Spring Strain Energy and Mesh Convergence Study  
+8. **Results and Discussions**  
+   8.1 Study Results  
+   8.2 Discussions & Model Revision (Single Leaf vs. Multi-Leaf / Parabolic Tapered)  
+9. **References**  
 
 ### List of Figures (สารบัญภาพ)
 * **Figure 1:** Automotive Semi-Elliptic Multi-Leaf Spring Assembly in Real-World Service & Manufacturing (Section 1)
@@ -50,22 +51,22 @@
 * **Figure 4:** 3D Fixed Support Restraint Applied on Inner Cylindrical Bore of Front Eye (Section 3.5.1)
 * **Figure 5:** Finite Element Restraints and Boundary Loading Schematic (Section 3.5.3)
 * **Figure 6:** 3D Finite Element Mesh Model and Rolled Eye Quadratic Discretization (Section 3.6)
-* **Figure 7:** Finite Element Mesh Convergence Study (Strain Energy vs. Discretization Density) (Section 8.5)
-* **Figure 8.1:** 3D Total Deformation Field Distribution ($U_{\text{total}}$) (Section 9.1)
-* **Figure 8.2:** 3D Directional Deformation Field Distribution in Y-Axis ($U_y$) (Section 9.1)
-* **Figure 8.3:** 3D Equivalent Elastic Strain Field Distribution ($\varepsilon_{\text{eq}}$) (Section 9.1)
-* **Figure 8.4:** 3D Equivalent Von Mises Stress Field Distribution ($\sigma_{\text{vm}}$) (Section 9.1)
-* **Figure 8.5:** 3D Maximum Principal Stress Field Distribution ($\sigma_1$) (Section 9.1)
-* **Figure 8.6:** 3D Maximum Shear Stress Field Distribution ($\tau_{\max}$) (Section 9.1)
-* **Figure 8.7:** 3D Internal Strain Energy Distribution ($U_{\text{strain}}$) (Section 9.1)
-* **Figure 9:** Von Mises Stress Distribution Comparison: Baseline Uniform vs. Parabolic Tapered Model (Section 9.2)
+* **Figure 7:** Finite Element Mesh Convergence Study (Strain Energy vs. Discretization Density) (Section 7.5)
+* **Figure 8.1:** 3D Total Deformation Field Distribution ($U_{\text{total}}$) (Section 8.1)
+* **Figure 8.2:** 3D Directional Deformation Field Distribution in Y-Axis ($U_y$) (Section 8.1)
+* **Figure 8.3:** 3D Equivalent Elastic Strain Field Distribution ($\varepsilon_{\text{eq}}$) (Section 8.1)
+* **Figure 8.4:** 3D Equivalent Von Mises Stress Field Distribution ($\sigma_{\text{vm}}$) (Section 8.1)
+* **Figure 8.5:** 3D Maximum Principal Stress Field Distribution ($\sigma_1$) (Section 8.1)
+* **Figure 8.6:** 3D Maximum Shear Stress Field Distribution ($\tau_{\max}$) (Section 8.1)
+* **Figure 8.7:** 3D Internal Strain Energy Distribution ($U_{\text{strain}}$) (Section 8.1)
+* **Figure 9:** Von Mises Stress Distribution Comparison: Baseline Uniform vs. Parabolic Tapered Model (Section 8.2)
 
 ### List of Tables (สารบัญตาราง)
 * **Table 1:** Design Load Cases for Leaf Spring Analysis (Section 2.3)
 * **Table 2:** Mechanical and Physical Properties of High-Strength Spring Steel 55Cr3 (SUP9) (Section 3.4)
-* **Table 3:** Multi-Stage Finite Element Mesh Convergence Evaluation Across Refinement Densities (Section 8.5)
-* **Table 4:** Comprehensive Multi-Load Case Finite Element Solution Matrix (Section 9.1)
-* **Table 5:** Performance Comparison: Baseline Uniform vs. Revised Parabolic Tapered Model (Section 9.2)
+* **Table 3:** Multi-Stage Finite Element Mesh Convergence Evaluation Across Refinement Densities (Section 7.5)
+* **Table 4:** Comprehensive Multi-Load Case Finite Element Solution Matrix (Section 8.1)
+* **Table 5:** Performance Comparison: Baseline Uniform vs. Revised Parabolic Tapered Model (Section 8.2)
 
 ---
 
@@ -228,7 +229,9 @@ The central region ($60\text{ mm} \times 100\text{ mm}$) where the leaf spring i
 
 ---
 
-## 4. Finite Element System Architecture
+## 4. Finite Element System Architecture & Repository Structure
+
+### 4.1 System Pipeline Architecture & Module Responsibilities
 
 The analysis architecture follows a sequential pipeline where each stage is encapsulated in a dedicated Python class and orchestrated by a master pipeline runner:
 
@@ -253,7 +256,7 @@ graph TD
     PIPE --> R3["results/model_revision_comparison.png<br/>(Baseline vs. Parabolic Tapered Optimization)"]
 ```
 
-### Module Responsibilities:
+#### Module Responsibilities:
 - **`config_loader.py` (`ConfigManager`):** Central singleton responsible for discovering, safely type-casting, and caching YAML parameters with engineering fallback defaults.
 - **`generate_mesh.py`:** Preprocessing engine that ingests CAD solid/surface geometry (`.stp`, `.stl`, `.inp`), generates 1D/2D/3D discretizations along the camber arc, and reports mesh quality metrics (Jacobian, aspect ratio).
 - **`leaf_spring_analytical.py` (`LeafSpringAnalytical`):** Formulation of vehicle dynamics load transfers, classical beam bending equations, local Euler-Bernoulli element stiffness matrices $[k^e]$, rotation transformation $[T]$, and global stiffness assembly $[K_{\text{global}}]$.
@@ -262,9 +265,7 @@ graph TD
 - **`refine.py` (`MeshConvergenceStudy`):** Multi-stage mesh convergence verification and Rivara longest-edge bisection adaptive refinement.
 - **`leaf_spring_fem.py` (`LeafSpringFEMPipeline`):** Master pipeline coordinator executing the complete simulation sequence via unified API and CLI flags.
 
----
-
-## 5. Repository Structure
+### 4.2 Repository Structure & File Organization
 
 ```
 ├── config/                     # Central YAML Configuration Layer
@@ -305,15 +306,15 @@ graph TD
 
 ---
 
-## 6. Installation & Verification
+## 5. Installation & Verification
 
-### 6.1 Clone Repository
+### 5.1 Clone Repository
 ```powershell
 git clone https://github.com/nontanan-linux/FEA-Leaf-Spring.git
 cd FEA-Leaf-Spring
 ```
 
-### 6.2 Virtual Environment Setup
+### 5.2 Virtual Environment Setup
 - **Windows (PowerShell):**
   ```powershell
   python -m venv .venv
@@ -325,22 +326,22 @@ cd FEA-Leaf-Spring
   source .venv/bin/activate
   ```
 
-### 6.3 Install Dependencies
+### 5.3 Install Dependencies
 ```powershell
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-### 6.4 Environment Verification
+### 5.4 Environment Verification
 ```powershell
 python -c "import numpy, scipy, matplotlib, open3d, yaml, trimesh; print('>>> [SUCCESS] All dependencies loaded successfully!')"
 ```
 
 ---
 
-## 7. Execution Guide & Programmatic API
+## 6. Execution Guide & Programmatic API
 
-### 7.1 Master Pipeline Runner (`leaf_spring_fem.py`)
+### 6.1 Master Pipeline Runner (`leaf_spring_fem.py`)
 Executes the full sequential FEM workflow:
 ```powershell
 # Run the complete analysis pipeline:
@@ -355,7 +356,7 @@ python scripts/leaf_spring_fem.py --elements 80 # Custom discretization element 
 
 ---
 
-### 7.2 Modular Step-by-Step Programmatic Usage
+### 6.2 Modular Step-by-Step Programmatic Usage
 
 Each module can be instantiated and executed independently in Python:
 
@@ -409,36 +410,36 @@ pipeline.run_all(num_elements=60)
 
 ---
 
-## 8. Analysis
+## 7. Analysis
 
 All stress evaluations are performed using the **Von Mises Equivalent Stress ($\sigma_{\text{vm}}$)** criterion:
 $$\sigma_{\text{vm}} = \sqrt{\frac{1}{2} \left[ (\sigma_1 - \sigma_2)^2 + (\sigma_2 - \sigma_3)^2 + (\sigma_3 - \sigma_1)^2 \right]}$$
 
-### 8.1 Forces Acting on Leaf Spring under Normal Static Vertical Load
+### 7.1 Forces Acting on Leaf Spring under Normal Static Vertical Load
 Under nominal laden static vertical load ($F = -8,240.40\text{ N}$):
 * **Max Von Mises Stress:** $\sigma_{\text{vm, max}} = 1,716.78\text{ MPa}$ (at central clamping point).
 * **Yield Strength:** $\sigma_y = 1,100.0\text{ MPa}$.
 * **Center Deflection:** $\delta_{\text{static}} = 167.59\text{ mm}$ (Stiffness $k = 49.17\text{ N/mm}$).
 * **Observation:** A single unreinforced 12 mm leaf carrying the full axle side load of $8,240.4\text{ N}$ experiences stress exceeding yield, demonstrating why commercial pickup suspensions require a **multi-leaf pack (3–4 leaves)** or a thicker parabolic section ($t \approx 22\text{ mm}$).
 
-### 8.2 Forces Acting under Dynamic Bump Load (2.0G Impact)
+### 7.2 Forces Acting under Dynamic Bump Load (2.0G Impact)
 Under peak dynamic bump load ($F = -16,480.80\text{ N}$):
 * **Max Von Mises Stress:** $\sigma_{\text{vm, max}} = 3,433.56\text{ MPa}$.
 * **Center Deflection:** $\delta_{\text{bump}} = 335.19\text{ mm}$.
 * **Evaluation:** Stresses are doubled in the linear range, showing the worst-case design boundary for bump stop engagement.
 
-### 8.3 Forces Acting under Combined Bump and Braking Load
+### 7.3 Forces Acting under Combined Bump and Braking Load
 Under vertical force $F_v = -8,240.40\text{ N}$ and longitudinal braking traction $F_x = -3,500.0\text{ N}$:
 * The horizontal traction creates longitudinal compression and an axle wind-up S-bending moment.
 * **Max Von Mises Stress:** $\sigma_{\text{vm, max}} = 1,600.12\text{ MPa}$.
 * **Center Deflection:** $\delta = 152.75\text{ mm}$.
 
-### 8.4 Severe Dynamic Bump + Braking Load Analysis
+### 7.4 Severe Dynamic Bump + Braking Load Analysis
 Under maximum dynamic bump ($16,480.80\text{ N}$) combined with severe braking traction ($-5,000\text{ N}$):
 * **Max Von Mises Stress:** $\sigma_{\text{vm, max}} = 3,266.90\text{ MPa}$.
 * **Center Deflection:** $\delta = 313.99\text{ mm}$.
 
-### 8.5 Leaf Spring Strain Energy and Mesh Convergence Study
+### 7.5 Leaf Spring Strain Energy and Mesh Convergence Study
 To ensure the numerical validity and discretization independence of the finite element solution [5], a systematic mesh convergence study was conducted across 6 successive mesh refinement stages (spanning $3,124$ to $29,172$ surface elements, corresponding to $\approx 5,850$ to $55,200$ volumetric continuum solid elements) employing the Rivara longest-edge bisection algorithm [7] under static laden ride ($F_v = -8,240.40\text{ N}$):
 
 #### Table 3: Multi-Stage Finite Element Mesh Convergence Evaluation Across Refinement Densities
@@ -458,9 +459,9 @@ To ensure the numerical validity and discretization independence of the finite e
 
 ---
 
-## 9. Results and Discussions
+## 8. Results and Discussions
 
-### 9.1 Study Results
+### 8.1 Study Results
 
 The structural performance of the automotive semi-elliptic leaf spring was evaluated across the critical vehicle operating conditions. Finite element post-processing was conducted to evaluate the complete set of **7 fundamental structural field solution quantities**:
 
@@ -531,7 +532,7 @@ The structural performance of the automotive semi-elliptic leaf spring was evalu
 
 ---
 
-### 9.2 Discussions & Model Revision
+### 8.2 Discussions & Model Revision
 
 #### Discussion of Baseline Results
 The baseline finite element analysis demonstrates that evaluating a single $12.0\text{ mm}$ constant-thickness leaf spring under the entire rear axle wheel load results in stresses exceeding the yield strength of the material ($\text{FoS} = 0.64$ in static, $0.32$ in bump based on the Von Mises and Tresca failure criteria [6]). 
@@ -563,7 +564,7 @@ The leaf was redesigned with a parabolic taper profile following SAE leaf spring
 
 ---
 
-## 10. References
+## 9. References
 
 [1] Milliken, W. F., & Milliken, D. L. (1995). *Race car vehicle dynamics*. SAE International.
 
