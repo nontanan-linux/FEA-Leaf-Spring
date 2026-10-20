@@ -47,12 +47,13 @@ D:\M.eng\FiniteElementMethode\FEA_Leaf_Spring\
 │   ├── solution_7_strain_energy.png # 3D Strain Energy Distribution (U_strain)
 │   └── model_revision_comparison.png # Figure 8: Baseline vs. revised comparison chart
 └── scripts\                    # Python source code for analysis & FEA
+    ├── config_loader.py            # Central Configuration Manager loading config/*.yaml
     ├── generate_mesh.py            # Step 1: CAD import & domain discretization (mesh generation)
-    ├── leaf_spring_analytical.py   # Step 2: Analytical mechanics, element equations & global stiffness assembly
-    ├── fem_solve.py                # Step 3: Boundary condition enforcement & linear system solver
-    ├── postprocessing.py           # Step 4: Stress/strain field recovery & ANSYS visualization dashboards
-    ├── refine.py                   # Step 5: Adaptive refinement (Rivara bisection) & mesh convergence study
-    ├── leaf_spring_fem.py          # 🎯 Master Orchestrator: Executes full FEM pipeline (Steps 1 to 5)
+    ├── leaf_spring_analytical.py   # Step 2: Class LeafSpringAnalytical (Analytical formulation & stiffness assembly)
+    ├── fem_solve.py                # Step 3: Class LeafSpringFEMSolver (Boundary enforcement & linear solver)
+    ├── postprocessing.py           # Step 4: Class LeafSpringPostProcessor (7 FEA solution fields & dashboards)
+    ├── refine.py                   # Step 5: Class MeshConvergenceStudy (Adaptive refinement & convergence)
+    ├── leaf_spring_fem.py          # 🎯 Master Orchestrator: Class LeafSpringFEMPipeline (Steps 1 to 5)
     ├── plot_fea_solutions_3d.py    # 3D Open3D FEA visualizer for all 7 primary solution fields
     ├── plot_vehicle_dynamics.py    # Vehicle dynamics Free Body Diagram generator (Figure 1)
     ├── plot_cad_fixed_support.py   # Direct CAD 3D renderer (Open3D) & Fixed Support hole highlighter
@@ -152,39 +153,75 @@ python scripts\leaf_spring_fem.py --revision  # Model Revision (Uniform vs. Para
 
 ---
 
-### 🧩 Modular FEM Steps (Sequential Execution)
+### 🧩 Modular FEM Steps & Object-Oriented Architecture
 
-The core FEA solver is decomposed into 5 decoupled, independently executable modules matching the canonical steps of the Finite Element Method:
+The FEA solver is decomposed into 5 decoupled, object-oriented modules that automatically read parameters from `config/*.yaml` (`vehicle_information.yaml`, `solver.yaml`, `model.yaml`, `material.yaml`):
 
 #### **Step 1: CAD Import & Domain Discretization (`generate_mesh.py`)**
-Imports 3D CAD (`.stp` / `.step`) or surface meshes (`.stl`), generates curved beam/frame or shell/solid discretizations, and calculates mesh quality metrics (Jacobian, aspect ratio):
+Imports 3D CAD (`.stp` / `.step`) or surface meshes (`.stl`), generates curved beam/frame or shell/solid discretizations, and calculates mesh quality metrics:
 ```powershell
 python scripts\generate_mesh.py
 ```
 
 #### **Step 2: Analytical Formulations, Element Equations & Assembly (`leaf_spring_analytical.py`)**
-Derives vehicle dynamic load transfers (1G static, 2G bump, 0.8G braking, 0.7G cornering), defines local beam element stiffness $[k^e]$, rotation transformation $[T]$, global assembly $[K_{\text{global}}]$, and boundary DOFs:
+Encapsulated in class **`LeafSpringAnalytical`**:
+- Derives vehicle dynamic load transfers (1G static, 2G bump, 0.8G braking, 0.7G cornering) from `vehicle_information.yaml`.
+- Formulates local beam stiffness $[k^e]$, direction cosine transformation $[T]$, and global assembly $[K_{\text{global}}]$.
 ```powershell
 python scripts\leaf_spring_analytical.py
 ```
+*Programmatic Python usage:*
+```python
+from leaf_spring_analytical import LeafSpringAnalytical
+analytical = LeafSpringAnalytical() # Reads config automatically
+forces = analytical.calculate_vehicle_loads()
+mechanics = analytical.calculate_leaf_spring_mechanics(forces)
+```
 
 #### **Step 3: Boundary Enforcement & Linear Equation Solver (`fem_solve.py`)**
-Partitions boundary conditions (pinned front eye, shackle roller rear eye), solves $[K_{\text{free}}] \{U_{\text{free}}\} = \{F_{\text{free}}\}$, and recovers reaction forces and strain energy:
+Encapsulated in class **`LeafSpringFEMSolver`**:
+- Imposes boundary conditions from `solver.yaml` (pinned front eye, shackle roller rear eye).
+- Solves $[K_{\text{free}}] \{U_{\text{free}}\} = \{F_{\text{free}}\}$ and computes reactions $\{R\}$ and strain energy $U_{\text{strain}}$.
 ```powershell
 python scripts\fem_solve.py
 ```
+*Programmatic Python usage:*
+```python
+from fem_solve import LeafSpringFEMSolver
+solver = LeafSpringFEMSolver()
+res = solver.solve(num_elements=60, F_vertical=-8240.40)
+```
 
 #### **Step 4: Post-Processing & Solution Fields (`postprocessing.py`)**
-Recovers the 7 standard ANSYS-compatible FEA solution fields ($\sigma_{\text{vm}}$, $\sigma_1$, $\tau_{\max}$, $\varepsilon_{\text{eq}}$, $U_{\text{total}}$, $U_y$, $U_{\text{strain}}$), safety factors, and generates the executive 8-panel dashboard:
+Encapsulated in class **`LeafSpringPostProcessor`**:
+- Recovers the 7 standard ANSYS solution fields ($\sigma_{\text{vm}}$, $\sigma_1$, $\tau_{\max}$, $\varepsilon_{\text{eq}}$, $U_{\text{total}}$, $U_y$, $U_{\text{strain}}$).
+- Computes Safety Factor and renders the executive 8-panel ANSYS dashboard.
 ```powershell
 python scripts\postprocessing.py
+```
+*Programmatic Python usage:*
+```python
+from postprocessing import LeafSpringPostProcessor
+post = LeafSpringPostProcessor()
+solutions = post.recover_element_solutions(res)
+post.print_solution_summary(solutions)
+post.plot_ansys_workbench_solutions(solutions)
 ```
 *Generated output:* `results/ansys_workbench_solutions.png`
 
 #### **Step 5: Adaptive Mesh Refinement & Convergence (`refine.py`)**
-Performs Rivara longest-edge bisection adaptive refinement and 6-stage 3D mesh convergence study (3,124 to 29,172 elements) with non-overlapping callout charts:
+Encapsulated in class **`MeshConvergenceStudy`**:
+- Reads convergence stages dynamically from `model.yaml` (`mesh_specifications.mesh_convergence_stages`).
+- Implements Rivara longest-edge bisection adaptive refinement.
+- Generates dual-panel convergence plot with non-overlapping callout annotations.
 ```powershell
 python scripts\refine.py
+```
+*Programmatic Python usage:*
+```python
+from refine import MeshConvergenceStudy
+study = MeshConvergenceStudy()
+stages = study.run_study()
 ```
 *Generated output:* `results/mesh_convergence_study.png`
 
