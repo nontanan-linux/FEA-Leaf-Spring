@@ -258,49 +258,49 @@ To ensure the numerical validity and discretization independence of the finite e
 
 The structural performance of the automotive semi-elliptic leaf spring was evaluated across the critical vehicle operating conditions. Finite element post-processing was conducted to evaluate the complete set of **7 fundamental structural field solution quantities**:
 
-1. **Total Deformation ($U_{\text{total}}$):**
+1. **Total Deformation** ($U_{\text{total}}$):
    $$U_{\text{total}} = \sqrt{u_x^2 + u_y^2 + u_z^2}$$
    Total resultant vector displacement across all translational degrees of freedom. Under nominal static laden ride ($F_v = -8,240.40\text{ N}$), peak total deflection reaches **$167.59\text{ mm}$** at the axle center seat ($x = 0\text{ mm}$), while the front eye remains rigidly pinned ($0.00\text{ mm}$) and the rear shackle displaces longitudinally by $23.40\text{ mm}$ to accommodate spring flattening. Under extreme 2.0G bump impact, total displacement reaches **$335.19\text{ mm}$**.
 
 ![Figure 7.1: 3D Total Deformation Field Distribution](solution_1_total_deformation.png)
 *Figure 7.1: 3D finite element total resultant deformation ($U_{\text{total}}$) distribution on the automotive leaf spring under static normal laden load ($F_v = -8,240.40\text{ N}$). Maximum total deflection of $167.59\text{ mm}$ occurs at the center axle seat ($x = 0$), while the front pinned eye remains constrained ($0.00\text{ mm}$) and the rear shackle displaces longitudinally by $23.40\text{ mm}$.*
 
-2. **Directional Deformation [Y-Axis] ($U_y$):**
+2. **Directional Deformation [Y-Axis]** ($U_y$):
    $$U_y = u_y(x)$$
    Vertical deflection along the gravity and suspension ride axis. Maximum downward sag reaches **$-167.59\text{ mm}$** (static laden) and **$-335.19\text{ mm}$** (2.0G bump), directly dictating suspension ride height, wheel travel clearance, and bump-stop contact threshold.
 
 ![Figure 7.2: 3D Directional Deformation in Y-Axis](solution_2_directional_deformation_y.png)
 *Figure 7.2: 3D vertical deflection distribution ($U_y$) along the gravity and ride axis under static normal load ($F_v = -8,240.40\text{ N}$). Peak vertical sag reaches $-167.59\text{ mm}$ at the axle seat ($x = 0$), dictating suspension jounce clearance and bump-stop contact threshold.*
 
-3. **Equivalent Elastic Strain ($\varepsilon_{\text{eq}}$):**
+3. **Equivalent Elastic Strain** ($\varepsilon_{\text{eq}}$):
    $$\varepsilon_{\text{eq}} = \frac{1}{1+\nu} \sqrt{\frac{1}{2}\left[(\varepsilon_1 - \varepsilon_2)^2 + (\varepsilon_2 - \varepsilon_3)^2 + (\varepsilon_3 - \varepsilon_1)^2\right]} \approx \frac{\sigma_{\text{vm}}}{E}$$
    Evaluates distortion elastic strain in the 55Cr3 spring steel matrix ($E = 206,000\text{ MPa}$). Peak equivalent elastic strain reaches **$8,333.9\text{ }\mu\varepsilon$** ($0.008334\text{ mm/mm}$) under static load and **$16,667.8\text{ }\mu\varepsilon$** ($0.016668\text{ mm/mm}$) under 2.0G bump. Since the elastic yield strain of 55Cr3 is $\varepsilon_y = 1,100 / 206,000 = 5,340\text{ }\mu\varepsilon$, unreinforced single-leaf operation incurs localized plastic strain demand.
 
 ![Figure 7.3: 3D Equivalent Elastic Strain Field Distribution](solution_3_equivalent_strain.png)
 *Figure 7.3: 3D equivalent elastic strain distribution ($\varepsilon_{\text{eq}}$) in the 55Cr3 spring steel matrix ($E = 206,000\text{ MPa}$). Peak equivalent elastic strain reaches $8,333.9\text{ }\mu\varepsilon$ ($0.008334\text{ mm/mm}$) at the central axle clamp boundary.*
 
-4. **Equivalent Stress ($\sigma_{\text{vm}}$ - Von Mises Criterion):**
+4. **Equivalent Stress** ($\sigma_{\text{vm}}$ – Von Mises Criterion):
    $$\sigma_{\text{vm}} = \sqrt{\frac{1}{2} \left[ (\sigma_1 - \sigma_2)^2 + (\sigma_2 - \sigma_3)^2 + (\sigma_3 - \sigma_1)^2 \right]}$$
    Octahedral shear stress distortion energy yield criterion. Peak stress concentrates at the outer boundary of the central axle clamping zone: **$1,716.78\text{ MPa}$** (Static) and **$3,433.56\text{ MPa}$** (2.0G Bump).
 
 ![Figure 7.4: 3D Equivalent Von Mises Stress Field Distribution](solution_4_equivalent_stress.png)
 *Figure 7.4: 3D Von Mises equivalent stress distribution ($\sigma_{\text{vm}}$) under static normal laden load ($F_v = -8,240.40\text{ N}$). Peak stress reaches $1,716.78\text{ MPa}$ at the outer boundary of the central axle clamp, exceeding the material yield strength ($1,100\text{ MPa}$) for an unreinforced single leaf.*
 
-5. **Maximum Principal Stress ($\sigma_1$):**
+5. **Maximum Principal Stress** ($\sigma_1$):
    $$\sigma_1 = \max \left( \text{eigenvalues}(\boldsymbol{\sigma}) \right)$$
    Represents peak tensile normal stress on the convex tension surface (underside) of the deflected spring. In bending-dominated structures, $\sigma_1 = \sigma_{\text{axial}} + \sigma_{\text{bending}} = \mathbf{1,716.78\text{ MPa}}$ (Static) and $\mathbf{3,433.56\text{ MPa}}$ (Bump). **Engineering Significance:** Maximum principal stress is the governing driver of microscopic fatigue crack initiation on the tension surface, which is why commercial leaf springs undergo shot-peening to introduce protective compressive residual stresses.
 
 ![Figure 7.5: 3D Maximum Principal Stress Field Distribution](solution_5_max_principal_stress.png)
 *Figure 7.5: 3D maximum principal normal stress distribution ($\sigma_1$) across the leaf spring. Peak tensile stress reaches $1,716.78\text{ MPa}$ on the convex lower tension surface, identifying the primary driver for cyclic fatigue crack initiation.*
 
-6. **Maximum Shear Stress ($\tau_{\max}$ - Tresca Criterion):**
-   $$\tau_{\max} = \frac{\sigma_1 - \sigma_3}{2} = \frac{\sigma_1}{2} = \mathbf{858.39\text{ MPa}} \text{ (Static)} \quad \text{and} \quad \mathbf{1,716.78\text{ MPa}} \text{ (2.0G Bump)}$$
-   Governs yielding slip planes at $45^\circ$ to the longitudinal axis and inter-leaf friction sliding in multi-leaf packs. The corresponding maximum shear strain is $\gamma_{\max} = \tau_{\max} / G = \mathbf{10,750.7\text{ }\mu\varepsilon}$ (Static) and $\mathbf{21,501.4\text{ }\mu\varepsilon$ (Bump).
+6. **Maximum Shear Stress** ($\tau_{\max}$ – Tresca Criterion):
+   $$\tau_{\max} = \frac{\sigma_1 - \sigma_3}{2} = \frac{\sigma_1}{2} = \mathbf{858.39}\text{ MPa (Static)} \quad \text{and} \quad \mathbf{1,716.78}\text{ MPa (2.0G Bump)}$$
+   Governs yielding slip planes at $45^\circ$ to the longitudinal axis and inter-leaf friction sliding in multi-leaf packs. The corresponding maximum shear strain is $\gamma_{\max} = \tau_{\max} / G = \mathbf{10,750.7}\text{ }\mu\varepsilon$ (Static) and $\mathbf{21,501.4}\text{ }\mu\varepsilon$ (Bump).
 
 ![Figure 7.6: 3D Maximum Shear Stress Field Distribution](solution_6_max_shear_stress.png)
 *Figure 7.6: 3D maximum shear stress distribution ($\tau_{\max}$) governed by the Tresca yield criterion. Peak shear stress reaches $858.39\text{ MPa}$ at the clamping zone and dictates inter-leaf contact slip planes in laminated leaf packs.*
 
-7. **Total Strain Energy ($U_{\text{strain}}$):**
+7. **Total Strain Energy** ($U_{\text{strain}}$):
    $$U_{\text{strain}} = \frac{1}{2} \int_V \boldsymbol{\sigma} : \boldsymbol{\varepsilon} \, dV = \frac{1}{2} \{U\}^T [K] \{U\}$$
    Measures the total mechanical energy absorbed and stored by the leaf spring during suspension deflection. Under static laden ride, the leaf spring stores **$690.52\text{ N}\cdot\text{m}$ ($J$)** of strain energy. Under dynamic bump impact ($2.0G$), stored strain energy quadruples to **$2,762.10\text{ N}\cdot\text{m}$ ($J$)**, demonstrating the spring's shock-absorption capacity.
 
