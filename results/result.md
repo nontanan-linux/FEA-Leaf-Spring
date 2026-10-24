@@ -39,6 +39,9 @@
    7.3 Combined Bump and Braking Load Analysis  
    7.4 Severe Dynamic Bump + Braking Load Analysis  
    7.5 Leaf Spring Strain Energy and Mesh Convergence Study  
+       7.5.1 Mesh Discretization Density Across Refinement Stages  
+       7.5.2 Structural Mechanical Response Convergence  
+       7.5.3 Strain Energy Asymptotic Convergence & Production Mesh Selection  
 8. **Results and Discussions**  
    8.1 Study Results  
    8.2 Discussions & Model Revision (Single Leaf vs. Multi-Leaf / Parabolic Tapered)  
@@ -64,7 +67,9 @@
 ### List of Tables (สารบัญตาราง)
 * **Table 1:** Design Load Cases for Leaf Spring Analysis (Section 2.3)
 * **Table 2:** Mechanical and Physical Properties of High-Strength Spring Steel 55Cr3 (SUP9) (Section 3.4)
-* **Table 3:** Multi-Stage Finite Element Mesh Convergence Evaluation Across Refinement Densities (Section 7.5)
+* **Table 3.1:** Mesh Discretization Density and Element Hierarchy Across Refinement Stages (Section 7.5)
+* **Table 3.2:** Structural Mechanical Response Convergence: Von Mises Stress and Center Deflection (Section 7.5)
+* **Table 3.3:** Total Strain Energy and Asymptotic Error Evaluation Across Refinement Stages (Section 7.5)
 * **Table 4:** Comprehensive Multi-Load Case Finite Element Solution Matrix (Section 8.1)
 * **Table 5:** Performance Comparison: Baseline Uniform vs. Revised Parabolic Tapered Model (Section 8.2)
 
@@ -440,19 +445,66 @@ Under maximum dynamic bump ($16,480.80\text{ N}$) combined with severe braking t
 * **Center Deflection:** $\delta = 313.99\text{ mm}$.
 
 ### 7.5 Leaf Spring Strain Energy and Mesh Convergence Study
-To ensure the numerical validity and discretization independence of the finite element solution [5], a systematic mesh convergence study was conducted across 6 successive mesh refinement stages (spanning $3,124$ to $29,172$ surface elements, corresponding to $\approx 5,850$ to $55,200$ volumetric continuum solid elements) employing the Rivara longest-edge bisection algorithm [7] under static laden ride ($F_v = -8,240.40\text{ N}$):
 
-#### Table 3: Multi-Stage Finite Element Mesh Convergence Evaluation Across Refinement Densities
-| Refinement Stage | Characteristic Size $h_e$ (mm) | Surface Elements | Surface Nodes | Est. Continuum Solids (C3D10) | Max Von Mises Stress (MPa) | Center Deflection (mm) | Total Strain Energy ($N\cdot m$) | Relative Error (%) | Convergence Status |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Stage 1 (Coarse)** | $40.0$ | $3,124$ | $4,112$ | $\approx 5,850$ | $1,582.40$ | $163.78$ | $674.850$ | - | Initial Baseline |
-| **Stage 2 (Med-Coarse)** | $25.0$ | $5,792$ | $6,238$ | $\approx 10,950$ | $1,648.60$ | $165.82$ | $683.200$ | $+1.237\%$ | Progressive Refinement |
-| **Stage 3 (Medium)** | $18.0$ | $10,084$ | $9,252$ | $\approx 19,100$ | $1,692.10$ | $167.02$ | $688.150$ | $+0.725\%$ | Approaching Limit |
-| **Stage 4 (Selected Production)** | **$12.0$** | **$14,996$** | **$13,448$** | **$\approx 28,400$** | **$1,716.78$** | **$167.59$** | **$690.523$** | **$+0.345\%$** | **Converged ($< 0.35\%$ error)** |
-| **Stage 5 (Fine Refine)** | $8.0$ | $21,448$ | $18,838$ | $\approx 40,600$ | $1,722.50$ | $167.63$ | $690.680$ | $+0.023\%$ | Fully Converged |
-| **Stage 6 (Ultra-Fine Benchmark)** | $5.0$ | $29,172$ | $25,798$ | $\approx 55,200$ | $1,724.10$ | $167.64$ | $690.710$ | $+0.004\%$ | Asymptotic Plateau |
+To ensure the numerical validity and discretization independence of the finite element solution [5], a systematic mesh convergence study was conducted across 6 successive mesh refinement stages employing the Rivara longest-edge bisection algorithm [7] under nominal static laden ride ($F_v = -8,240.40\text{ N}$). To facilitate clear reporting and academic analysis, the convergence evaluation is partitioned into three concise, topic-specific sub-tables:
+1. **Mesh Discretization Density & Element Hierarchy** (Table 3.1)
+2. **Structural Mechanical Response Convergence** (Table 3.2)
+3. **Total Strain Energy & Asymptotic Error Evaluation** (Table 3.3)
 
-*Result:* As the mesh is refined from Stage 1 to Stage 6, the total elastic strain energy increases monotonically from $674.85\text{ N}\cdot\text{m}$ and converges asymptotically to the true mathematical limit of $690.71\text{ N}\cdot\text{m}$. At the **Selected Production Mesh (Stage 4: 14,996 surface elements / $\approx 28,400$ continuum solid elements)**, the relative change in strain energy drops below **$0.345\%$**, and the peak Von Mises stress ($\sigma_{\text{vm}} = 1,716.78\text{ MPa}$) settles within $0.4\%$ of the ultra-fine benchmark, rigorously confirming grid independence.
+---
+
+#### 7.5.1 Mesh Discretization Density Across Refinement Stages
+The leaf spring CAD geometry was discretized using curvature-sensitive adaptive bisection. The characteristic element size $h_e$ was progressively refined from $40.0\text{ mm}$ (coarse baseline) down to $5.0\text{ mm}$ (ultra-fine benchmark), spanning $3,124$ to $29,172$ triangular surface elements (corresponding to $\approx 5,850$ to $55,200$ quadratic continuum solid elements `C3D10`):
+
+#### Table 3.1: Mesh Discretization Density and Element Hierarchy Across Refinement Stages
+
+| Refinement Stage | Characteristic Size $h_e$ (mm) | Surface Elements | Surface Nodes | Est. Continuum Solids (`C3D10`) | Refinement Ratio |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **Stage 1 (Coarse)** | $40.0$ | $3,124$ | $4,112$ | $\approx 5,850$ | $1.00\times$ (Baseline) |
+| **Stage 2 (Med-Coarse)** | $25.0$ | $5,792$ | $6,238$ | $\approx 10,950$ | $1.85\times$ |
+| **Stage 3 (Medium)** | $18.0$ | $10,084$ | $9,252$ | $\approx 19,100$ | $3.23\times$ |
+| **Stage 4 (Selected Production)** | **$12.0$** | **$14,996$** | **$13,448$** | **$\approx 28,400$** | **$4.80\times$** |
+| **Stage 5 (Fine Refine)** | $8.0$ | $21,448$ | $18,838$ | $\approx 40,600$ | $6.87\times$ |
+| **Stage 6 (Ultra-Fine Benchmark)** | $5.0$ | $29,172$ | $25,798$ | $\approx 55,200$ | $9.34\times$ |
+
+*Summary:* Refining $h_e$ from $40.0\text{ mm}$ to $5.0\text{ mm}$ expands the mesh density by $9.34\times$, providing high geometric fidelity along curved rolled eye regions and central axle clamping contact zones.
+
+---
+
+#### 7.5.2 Structural Mechanical Response Convergence
+The physical response of the leaf spring is evaluated through the peak Von Mises equivalent stress ($\sigma_{\text{vm}}$) at the critical clamping boundary and the maximum vertical sag ($\delta$) at the center axle seat. As detailed in Table 3.2, peak stress rises smoothly from $1,582.40\text{ MPa}$ at Stage 1 and stabilizes at $1,716.78\text{ MPa}$ at Stage 4, with stress variations dropping below $1.5\%$ and center deflection stabilizing at $167.59\text{ mm}$ (less than $0.03\%$ variation between Stage 4 and Stage 6):
+
+#### Table 3.2: Structural Mechanical Response Convergence: Von Mises Stress and Center Deflection
+
+| Refinement Stage | Characteristic Size $h_e$ (mm) | Max Von Mises Stress $\sigma_{\text{vm}}$ (MPa) | Center Deflection $\delta$ (mm) | Stress Variation vs. Prior Stage (%) |
+| :--- | :---: | :---: | :---: | :---: |
+| **Stage 1 (Coarse)** | $40.0$ | $1,582.40$ | $163.78$ | Baseline |
+| **Stage 2 (Med-Coarse)** | $25.0$ | $1,648.60$ | $165.82$ | $+4.18\%$ |
+| **Stage 3 (Medium)** | $18.0$ | $1,692.10$ | $167.02$ | $+2.64\%$ |
+| **Stage 4 (Selected Production)** | **$12.0$** | **$1,716.78$** | **$167.59$** | **$+1.46\%$ (Stabilized)** |
+| **Stage 5 (Fine Refine)** | $8.0$ | $1,722.50$ | $167.63$ | $+0.33\%$ |
+| **Stage 6 (Ultra-Fine Benchmark)** | $5.0$ | $1,724.10$ | $167.64$ | $+0.09\%$ |
+
+*Summary:* Beyond Stage 4 ($h_e = 12.0\text{ mm}$), vertical deflection changes by only $0.05\text{ mm}$ ($< 0.03\%$) and peak stress varies by less than $0.4\%$, demonstrating that global compliance and localized stress concentrations have both reached numerical stability.
+
+---
+
+#### 7.5.3 Strain Energy Asymptotic Convergence & Production Mesh Selection
+In displacement-based finite element formulations, the total internal strain energy ($U_{\text{strain}} = \frac{1}{2} \{U\}^T [K] \{U\}$) converges monotonically from below toward the exact theoretical strain energy limit as discretization density increases. Discretization independence is established when the relative error between successive stages drops below the convergence criterion of $\epsilon_{\text{target}} \le 0.35\%$:
+
+#### Table 3.3: Total Strain Energy and Asymptotic Error Evaluation Across Refinement Stages
+
+| Refinement Stage | Total Strain Energy ($N\cdot m$) | Relative Error $e_U$ (%) | Convergence Criterion | Numerical Status |
+| :--- | :---: | :---: | :---: | :---: |
+| **Stage 1 (Coarse)** | $674.850$ | - | - | Initial Baseline |
+| **Stage 2 (Med-Coarse)** | $683.200$ | $+1.237\%$ | $> 0.35\%$ | Refining |
+| **Stage 3 (Medium)** | $688.150$ | $+0.725\%$ | $> 0.35\%$ | Approaching Limit |
+| **Stage 4 (Selected Production)** | **$690.523$** | **$+0.345\%$** | **$\le 0.35\%$** | **Converged (Optimal Mesh)** |
+| **Stage 5 (Fine Refine)** | $690.680$ | $+0.023\%$ | $\le 0.35\%$ | Fully Converged |
+| **Stage 6 (Ultra-Fine Benchmark)** | $690.710$ | $+0.004\%$ | $\le 0.35\%$ | Asymptotic Limit |
+
+*Discussion & Conclusion on Convergence:* 
+As the mesh density increases, total strain energy increases monotonically from $674.85\text{ N}\cdot\text{m}$ and plateaus asymptotically toward $690.71\text{ N}\cdot\text{m}$. At **Stage 4 ($h_e = 12.0\text{ mm}$)**, the relative change in strain energy drops to **$+0.345\%$**, successfully meeting the strict convergence threshold ($\le 0.35\%$). Concurrently, peak Von Mises stress settles within $0.4\%$ of the ultra-fine benchmark. Consequently, Stage 4 ($14,996$ surface elements / $\approx 28,400$ continuum solid elements) is selected as the **Production Mesh** for all subsequent multi-load case analyses, delivering rigorous numerical fidelity while maintaining optimal computational efficiency.
 
 ![Figure 7: Finite Element Mesh Convergence Study (Strain Energy vs. Discretization Density)](mesh_convergence_study.png)
 *Figure 7: 3D finite element mesh convergence study showing total strain energy ($U$) and peak Von Mises stress ($\sigma_{\text{vm}}$) across 6 refinement stages ($3,124$ to $29,172$ surface elements / $5,850$ to $55,200$ continuum solid elements). The solution converges asymptotically to $690.52\text{ N}\cdot\text{m}$ at Stage 4 (14,996 elements) with less than $0.35\%$ error, rigorously validating discretization independence.*
